@@ -1,0 +1,135 @@
+\begin{table}[!h]
+  \centering
+  \begin{subtable}[b]{\textwidth}
+    \centering
+    \begin{tabular}{|r|r|r|}
+      \hline
+      \multicolumn{1}{ |c| }{ \multirow{2}{12ex}{\emph{Dimensione matrice}} } &
+      \multicolumn{2}{ |c| }{ $\textrm{T}_{\textrm{calc}}$ } \\
+      \cline{2-3}
+      & $\tau$ & $\microsec$ \\
+      \hline
+      %% f = 864.583 Mhz 
+      %% t = 1/864.583 microsec = 1.156626 nanosec    
+      56x56  &  82934.927 &  95.924692 \\
+      168x128 &  735319.293 & 850.489412 \\
+      280x280 &  2040430.561 & 2360.015038\\
+      \hline
+    \end{tabular}
+    \caption{Misurazioni del tempi di elaborazione del programma di calcolo sequenziale.}
+    \label{tab:Tcalc}
+  \end{subtable}
+
+  \vspace{2ex}
+
+  \begin{subtable}[b]{\textwidth}
+    \centering
+    \begin{tabular}{r|l|l|r|r|}
+      \cline{2-5}
+%      \multicolumn{1}{ |c| }{ \multirow{2}{*}{\emph{Implementazione usata}} } & 
+      & \multicolumn{2}{ |c| }{ \emph{Implementazione usata}} & 
+      \multicolumn{2}{ |c| }{ $\indeltacom$ } \\
+      \cline{2-5}
+      & \emph{canale simmetrico} & \emph{canale asimmetrico} & $\tau$ & $\microsec$ \\
+      \cline{2-5}
+      {\footnotesize UDN} & \verb+ch_sym_udn+ & \verb+ch_asymin_udn+ & 180.95523 & 0.20929 \\
+      & \verb+ch_sym_sm+ & \verb+ch_asymin_sm+ & 481.04016 & 0.55638 \\
+      {\footnotesize SM} & \verb+ch_sym_sm+ & \verb+ch_asymin_sm_all+ & 724.91273 & 0.83845 \\
+      %% \verb+udn+ & \verb+udn+ & 180.95523 & 0.20929 \\
+      %% \verb+sm+ & \verb+sm+ & 481.04016 & 0.55638 \\
+      %% \verb+sm+ & \verb+sm_all+ & 724.91273 & 0.83845 \\
+      \cline{2-5}
+    \end{tabular}
+    \caption{Stima di \deltacom\ per mezzo delle misure della latenza dei canali effettuate in sezione~\ref{sct:meter_risultati} con i due processi distanti 14 hops.}
+    \label{tab:deltacom}
+  \end{subtable}
+
+  \vspace{2ex}
+
+  \begin{subtable}[b]{\textwidth}
+    \centering
+    \begin{tabular}{|r|r|r|r|r|}
+      \hline
+      \multicolumn{1}{ |c| }{ \multirow{2}{*}{M} } & 
+      \multicolumn{2}{ |c| }{ $\inTsubsystemId$(UDN) } &
+      \multicolumn{2}{ |c| }{ $\inTsubsystem$(SM) } \\[2pt] 
+      \cline{2-5}
+      & $\tau$ & $\mu\mathrm{sec}$ 
+      & $\tau$ & $\mu\mathrm{sec}$ \\
+      \hline
+      56 & 1586.632 & 1.835 & 2130.589 & 2.464 \\
+      168 & 12643.994 & 14.624 & 13187.952 & 15.254 \\
+      280 & 34764.524 & 40.210 & 35308.482 & 40.839 \\
+      %% 56 & 1408.7445 & 1.6293905421 \\
+      %% 168 & 12466.1066 & 14.41862307 \\
+      %% 280 & 34586.6366 & 40.00380317\\
+      \hline
+    \end{tabular}
+    \caption{Valori del tempo di servizio ideali della Map con grado di parallelismo massimo ($N=59$). Sono ottenuti sostituendo i valori delle tabelle~\ref{tab:Tcalc},~\ref{tab:deltacom} alla formula~\ref{eq:impl_TsubsysId}.}
+    \label{tab:TsubsysId}
+  \end{subtable}
+
+%% \caption{Valori ideali dei tempi di calcolo e di comunicazione}
+  \caption[Tempi di servizio ideali del benchmark]{}
+  \label{tab:Tcalc_deltacom_TsubsysId}
+\end{table}
+
+
+%% 09061135
+%% \begin{table}[p]
+%%   \centering
+%%   \begin{subtable}[b]{\textwidth}
+%%     \centering
+%%     \begin{tabular}{|l|c|c|}
+%%       \hline
+%%       \emph{Matrix Size} & $\textrm{T}_{\textrm{calc}} \, (\,\tau\,)$ & $\textrm{T}_{\textrm{calc}} \, (\,\microsec\,)$ \\[2pt]
+%%       \hline
+%%       %% f = 864.583 Mhz 
+%%       %% t = 1/864.583 microsec = 1.156626 nanosec    
+%%       56x56  &  82934.927 &  95.924692 \\
+%%       168x128 &  735319.293 & 850.489412 \\
+%%       280x280 &  2040430.561 & 2360.015038\\
+%%       \hline
+%%     \end{tabular}
+%%     \caption{Misurazioni del tempi di elaborazione del programma di calcolo sequenziale.}
+%%     \label{tab:Tcalc}
+%%   \end{subtable}
+
+%%   \vspace{2ex}
+
+%%   \begin{subtable}[b]{\textwidth}
+%%     \centering
+%%     \begin{tabular}{|l|r|r|}
+%%       \hline
+%%       \emph{Canali usati} & $\indeltacom \, (\,\tau\,)$ & $\indeltacom \, (\,\microsec\,)$ \\[2pt]
+%%       \hline
+%%       UDN only & 180.95523 & 0.20929 \\
+%%       SM only & 481.04016 & 0.55638 \\
+%%       SM only, with all senders  & 724.91273 & 0.83845 \\
+%%       \hline
+%%     \end{tabular}
+%%     \caption{Valori ideali della somma dei tempi impiegati nelle comunicazioni dai processi worker della Map (misure con \#hops = 14).}
+%%     \label{tab:deltacom}
+%%   \end{subtable}
+
+%%   \vspace{2ex}
+
+%%   \begin{subtable}[b]{\textwidth}
+%%     \centering
+%%     \begin{tabular}{|l|l|l|}
+%%       \hline
+%%       M & $\inTsubsystemId (\,\tau\,)$ & $\inTsubsystemId (\,\mu \mathrm{sec}\,)$ \\[2pt]
+%%       \hline
+%%       56 & 1408.7445225254237 & 1.6293905421104913 \\
+%%       168 & 12466.106655644067 & 14.418623076690981 \\
+%%       280 & 34586.636626711865 & 40.003803175007249 \\
+%%       \hline
+%%     \end{tabular}
+%%     \caption{Valori del tempo di servizio ideale della Map con grado di parallelismo massimo ($N=59$)}
+%%     \label{tab:TsubsysId}
+%%   \end{subtable}
+
+%% %% \caption{Valori ideali dei tempi di calcolo e di comunicazione}
+%%   \caption{}
+%%   \label{tab:Tcalc_deltacom_TsubsysId}
+%% \end{table}

@@ -1,0 +1,16 @@
+files = system("ls -f $0")
+columnIndex = "$1"
+
+print "[INFO] [plot_rowCalcTimeRatio.gp] first arg: $0; second arg: $1"
+
+set term epslatex color colortext
+#set out "$1"
+call "gnuplot_tesi_varM.gp"
+call "gnuplot_slide_varM.gp"
+call "gnuplot_slide.gp" 0
+
+set key top left
+set xlabel "$$n$$ parallel degree"
+set ylabel "$$T_{\\textrm{row}}^{\\phantom{row}(n)} / T_{\\textrm{row}}^{\\phantom{row}(1)}$$"
+f(x) = 1
+plot [1:] [0.8:3] for [i in files] i using 1:7 with linespoints title column(columnIndex)

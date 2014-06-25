@@ -1,0 +1,2727 @@
+%!PS-Adobe-3.0
+%%Title: benchmark_suite.c
+%%For: Federico Mariti
+%%Creator: a2ps version 4.14
+%%CreationDate: Thu May 16 10:02:39 2013
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 8
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontMatrix get 3 get 1000 mul
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 8.005733 def
+/cw 4.803440 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   501.959430 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <sys/time.h>) p n
+(/*) c n
+( * Macro:) N
+( *) N
+( * GATHER) N
+( *) N
+( * specifica se il collettore fa da gather o meno: ) N
+( *) N
+( * 0: il collettore effettua solo la receive, i workers scrivono il) N
+( * risultato direttamente nel vettore risultato C. Cio` e` usabile) N
+( * solo con un numero di workers multiplo di M) N
+( *) N
+( * 1: il collettore riceve il riferimento di una struttura dati dove) N
+( * il worker ha salvato i suoi risulati, quindi copia i valori) N
+( * contenuti in tale struttura nel vettore risultato) N
+( *) N
+( * DATATYPE) N
+( *) N
+( * specifica il tipo dei dati) N
+( * 0: int) N
+( * 1: float) N
+( *) N
+( * CALC_TIME) N
+( *) N
+( * se definita viene preso il tempo di calcolo di un singolo) N
+( * worker. Per tempo di calcolo si intende l'attivita` di) N
+( * moltiplicazione righe per colonna svolta una volta ricevuta la) N
+( * matrice ed eseguito il multicast.) N
+( *) N
+( * CALC_TIME_ROW) N
+( *) N
+( * se definita viene preso il tempo di calcolo di un singolo elemento,) N
+( * ovvero il tempo impiegato per una singola moltiplicazione riga per) N
+( * colonna.) N
+( *) N
+( * ASYM_TIME) N
+( *) N
+( * se definita viene preso il tempo per effettuare l'invio sul canale) N
+( * del collector.) N
+( *) N
+( * DONT_WRITE_RESULT) N
+( *) N
+( * se definita non si scrive il risultato nel file.) N
+( */) N
+(#include) K
+( <stdlib.h>) p n
+(#include) K
+( <stdio.h>) p n
+(#include) K
+( <errno.h>) p n
+(#include) K
+( <pthread.h>) p n
+(#include) K
+( <string.h> ) p n
+(#include) K
+( <math.h>) p n
+(#include) K
+( <getopt.h>) p n
+(#include) K
+( <tmc/cpus.h>) p n
+(#include) K
+( <tmc/udn.h>) p n
+(#include) K
+( <tmc/task.h>) p n
+(#include) K
+( <tmc/alloc.h>) p n
+() N
+(#include) K
+( ") p
+(error_handler.h) str
+(") p n
+(#include) K
+( ") p
+(ch_sym_ref_ad1_udn.h) str
+(") p n
+(#include) K
+( ") p
+(ch_sym_ref_ad1_sm_fence.h) str
+(") p n
+(#include) K
+( ") p
+(ch_sym_ref_ad1_sm_nullack.h) str
+(") p n
+(#include) K
+( ") p
+(ch_asymin_ref_ad1_udn.h) str
+(") p n
+(#include) K
+( ") p
+(ch_asymin_ref_ad1_sm_param_b.h) str
+(") p n
+(benchmark_suite.c) (Page 1/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(////////////////////////////////////////////////////////////////////////////) c n
+(// defines) N
+(////////////////////////////////////////////////////////////////////////////) N
+() p n
+(/**) c n
+( * Massimo numero di workers allocabili:) N
+( *) N
+( *  Si ipotizza una configurazione con tutte le cpu dataplane eccetto) N
+( *  le ultime due.) N
+( *) N
+( *  Due cpu dataplane sono necessarie per eseguire il Generatore e il) N
+( *  Collettore.) N
+( *) N
+( *  Una cpu dataplane e` necessaria per eseguire il task) N
+( *  principale. Nota: e` necessario che tale task sia eseguito in una) N
+( *  cpu dataplane e con UDN attivo in quanto l'inizializzazione dei) N
+( *  canali puo far uso della rete UDN.) N
+( */) N
+(#define) K
+( MAX_PARALLDEGREE 59) p n
+() N
+(/*) c n
+( * Gathering:) S 16 T (GATHER == 1 <=> gathering) N
+( *) S 8 T () S 16 T (GATHER == 0 <=> no gathering) N
+( * Data Type:) S 16 T (DATATYPE == 0 <=> int) N
+( *) S 8 T () S 16 T (DATATYPE == 1 <=> float) N
+( */) N
+(#ifndef) K
+( GATHER) p n
+(# define) K
+( GATHER 1) p n
+(#endif) K n
+(#ifndef) S
+( DATATYPE) p n
+(# define) K
+( DATATYPE 0) p n
+(#endif) K n
+() p n
+(#if) K
+( GATHER == 1 && DATATYPE == 0) p n
+(# define) K
+( VERSION_STRING ") p
+(gatherInt) str
+(") p n
+(#elif) K
+( GATHER == 0 && DATATYPE == 0) p n
+(# define) K
+( VERSION_STRING ") p
+(nogatherInt) str
+(") p n
+(#elif) K
+( GATHER == 1 && DATATYPE == 1) p n
+(# define) K
+( VERSION_STRING ") p
+(gatherFloat) str
+(") p n
+(#elif) K
+( GATHER == 0 && DATATYPE == 1) p n
+(# define) K
+( VERSION_STRING ") p
+(nogatherFloat) str
+(") p n
+(#endif) K n
+() p n
+(#define) K
+( get_clock_cycle __insn_mfspr\(SPR_CYCLE_LOW\)) p n
+(#define) K
+( CYCLE_LENGTH_MILLI 0.0000011566265) p n
+(#define) K
+( CYCLE_LENGTH_MICRO 0.0011566265) p n
+(#define) K
+( CYCLE_LENGTH_NANO 1.1566265) p n
+(#define) K
+( NUM_CPU 60) p n
+(#define) K
+( DEFAULT_SUITE_LENGTH 10) p n
+(#define) K
+( DEFAULT_M 160) p n
+(#define) K
+( DEFAULT_K 1000) p n
+(#define) K
+( DEFAULT_INTERARRIVAL 1) p n
+() N
+(#define) K
+( IMPL_SYM_UDN 0) p n
+(#define) K
+( IMPL_SYM_SM_FENCE 1) p n
+(#define) K
+( IMPL_SYM_SM_NULLACK 2) p n
+(#define) K
+( IMPL_ASYMIN_UDN 0) p n
+(#define) K
+( IMPL_ASYMIN_SM 1) p n
+() N
+(#define) K
+( setOpt\(VAR, NAME, HAS_ARG, FLAG, VAL\) \(VAR\).name = NAME; \(VAR\).has_arg =) p n
+( HAS_ARG; \(VAR\).flag = FLAG; \(VAR\).val = VAL;) N
+(benchmark_suite.c) (Page 2/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (1/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(typedef) K
+( ) p
+(struct) k
+( {) p n
+(  ) S
+(void) k
+( *) p 16 T (\(*create\)\() S
+(int) k
+(, ) p
+(int) k
+(, ) p
+(void) k
+( *\);) p n
+(  ) S
+(void) k
+() p 8 T () S 16 T (\(*send\)\() S
+(void) k
+( *, ) p
+(void) k
+( *\);) p n
+(  ) S
+(void) k
+( *) p 16 T (\(*receive\)\() S
+(void) k
+( *\);) p n
+(  ) S
+(void) k
+() p 8 T () S 16 T (\(*destroy\)\() S
+(void) k
+( **\);) p n
+() N
+(} ch_impl_t;) N
+() N
+(typedef) K
+( ) p
+(struct) k
+( {) p n
+(  ) S
+(void) k
+( *) p 16 T (\(*create\)\() S
+(int) k
+(, ) p
+(int) k
+([], ) p
+(void) k
+( *\);) p n
+(  ) S
+(void) k
+() p 8 T () S 16 T (\(*send\)\() S
+(void) k
+( *, ) p
+(void) k
+( *, ) p
+(int) k
+(\);) p n
+(  ) S
+(void) k
+( *) p 16 T (\(*receive\)\() S
+(void) k
+( *\);) p n
+(  ) S
+(void) k
+() p 8 T () S 16 T (\(*destroy\)\() S
+(void) k
+( **\);) p n
+() N
+(} ch_asym_impl_t;) N
+() N
+(typedef) K
+( ) p
+(struct) k
+( {) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (cpu;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (rank;) N
+(  ) S
+(void) k
+() p 8 T () S 16 T (*ch_in;) N
+(  ) S
+(void) k
+() p 8 T () S 16 T (*ch_out_left;) N
+(  ) S
+(void) k
+() p 8 T () S 16 T (*ch_out_right;) N
+(#if) K
+( DATATYPE==0) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (*vectorB;) N
+(#elif) K
+( DATATYPE==1) p n
+(  ) S
+(float) k
+() p 8 T () S 16 T (*vectorB;) N
+(#endif) K n
+(#if) S
+( GATHER==0 && DATATYPE==0) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (*vectorC_set;) N
+(#elif) K
+( GATHER==0 && DATATYPE==1) p n
+(  ) S
+(float) k
+() p 8 T () S 16 T (*vectorC_set;) N
+(#endif) K n
+(  ) p n
+(} worker_arg_t;) N
+() N
+(typedef) K
+( ) p
+(struct) k
+( {) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (cpu;) N
+(  ) S
+(void) k
+() p 8 T () S 16 T (*ch_out;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (interarrival;) N
+(#if) K
+( DATATYPE==0) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (**matrixA_set;) N
+(#elif) K
+( DATATYPE==1) p n
+(  ) S
+(float) k
+() p 8 T () S 16 T (**matrixA_set;) N
+(#endif) K n
+(} gen_arg_t;) p n
+() N
+(typedef) K
+( ) p
+(struct) k
+( {) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (cpu;) N
+(  ) S
+(void) k
+() p 8 T () S 16 T (*ch_in;) N
+(#if) K
+( DATATYPE==0) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (*vectorC_set;) N
+(#elif) K
+( DATATYPE==1) p n
+(  ) S
+(float) k
+() p 8 T () S 16 T (*vectorC_set;) N
+(#endif) K n
+(} col_arg_t;) p n
+() N
+(////////////////////////////////////////////////////////////////////////////) c n
+(// globals) N
+(////////////////////////////////////////////////////////////////////////////) N
+() p n
+(void) k
+( *task_generator\() p
+(void) k
+( *arg\);) p n
+(benchmark_suite.c) (Page 3/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(void) k
+( *task_worker\() p
+(void) k
+( *arg\);) p n
+(void) k
+( *task_collector\() p
+(void) k
+( *arg\);) p n
+(int) k
+( worker_cpu_mapping_sequential\(worker_arg_t *wor_arg, ) p
+(int) k
+( parallDegree,) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (  ) S
+(const) K
+( cpu_set_t *dataplanes\);) p n
+(void) k
+( create_depth_tree\(worker_arg_t *node, ) p
+(int) k
+( length, ) p
+(int) k
+( height, ) p
+(int) k
+( node_inde) p n
+(x,) N
+() S 8 T () S 16 T (       ) S
+(int) k
+( parent_index, gen_arg_t *generator\);) p n
+(void) k
+( test_create_depth_tree\(worker_arg_t *array, ) p
+(int) k
+( size\);) p n
+() N
+(int) k
+() p 8 T () S 16 T () S 24 T (suite_length = DEFAULT_SUITE_LENGTH;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (dataSizeM = DEFAULT_M;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (streamSizeK = DEFAULT_K;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (interarrival = DEFAULT_INTERARRIVAL;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (parallDegree;) N
+(void) k
+() p 8 T () S 16 T () S 24 T (*ch_results;) N
+(pthread_barrier_t) S 24 T (start_computation;) N
+(pthread_barrier_t) S 24 T (end_computation;) N
+() N
+(uint_reg_t) S 16 T () S 24 T (a, b;) N
+() N
+(int) k
+() p 8 T () S 16 T () S 24 T (sym_impl = 0;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (asym_impl = 0;) N
+(int) k
+() p 8 T () S 16 T () S 24 T (multicast_impl = 0;) N
+() N
+(/**) c n
+( * Usato insieme a impl_sym per invocare la giusta implementazione) N
+( * nell'invio e nella ricezione) N
+( */) N
+(ch_impl_t channel_sym_fun[] = {) p n
+(  { ch_sym_ref_ad1_udn_create_2,) N
+(    ch_sym_ref_ad1_udn_send,) N
+(    ch_sym_ref_ad1_udn_receive,) N
+(    ch_sym_ref_ad1_udn_destroy) N
+(  },) N
+(  { ch_sym_ref_ad1_sm_fence_create,) N
+(    ch_sym_ref_ad1_sm_fence_send,) N
+(    ch_sym_ref_ad1_sm_fence_receive,) N
+(    ch_sym_ref_ad1_sm_fence_destroy) N
+(  },) N
+(  { ch_sym_ref_ad1_sm_nullack_create,) N
+(    ch_sym_ref_ad1_sm_nullack_send,) N
+(    ch_sym_ref_ad1_sm_nullack_receive,) N
+(    ch_sym_ref_ad1_sm_nullack_destroy) N
+(  }) N
+(};) N
+(/**) c n
+( * Usato insieme a impl_asym per invocare la giusta implementazione) N
+( * nell'invio e nella ricezione) N
+( */) N
+(ch_asym_impl_t channel_asym_fun[] = {) p n
+(  { ch_asymin_ref_ad1_udn_create_2,) N
+(    ch_asymin_ref_ad1_udn_send,) N
+(    ch_asymin_ref_ad1_udn_receive,) N
+(    ch_asymin_ref_ad1_udn_destroy) N
+(  },) N
+(  { ch_asymin_ref_ad1_sm_param_b_create_2,) N
+(    ch_asymin_ref_ad1_sm_param_b_send,) N
+(    ch_asymin_ref_ad1_sm_param_b_receive,) N
+(    ch_asymin_ref_ad1_sm_param_b_destroy) N
+(  }) N
+(};) N
+() N
+(benchmark_suite.c) (Page 4/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (2/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(FILE) k
+( *complTime_file, *calctime_file, *calctimerow_file, *asymTime_file;) p n
+() N
+() N
+(////////////////////////////////////////////////////////////////////////////) c n
+(// main) N
+(////////////////////////////////////////////////////////////////////////////) N
+() p n
+(int) k n
+(main\() p
+(int) k
+( argc, ) p
+(char) k
+( **argv\)) p n
+({) N
+(  ) S
+(struct) k
+( timeval time_start_comp, time_end_comp, time_comp;) p n
+() N
+(  ch_sym_ref_ad1_udn_param_t udn_param;) N
+() N
+(  pthread_t) S 16 T (th[NUM_CPU];) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (main_cpu;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (gen_cpu = 0;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (col_cpu = 1;) N
+(  cpu_set_t) S 16 T (hardwall, dp, dp_cur;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (h, i, j, l;) N
+(  gen_arg_t) S 16 T (gen_arg;) N
+(  col_arg_t) S 16 T (col_arg;) N
+(  worker_arg_t) S 16 T (wor_arg[NUM_CPU];) N
+(  ) S
+(int) k
+() p 8 T () S 16 T (worker_cpus[NUM_CPU];) N
+(#if) K
+( DATATYPE == 0) p n
+(  ) S
+(int) k
+() p 8 T () S 16 T (**matrixA_set, *vectorB, *vectorC_set;) N
+(  size_t) S 16 T (matrixA_size;) N
+(  size_t) S 16 T (vectorB_size;) N
+(  size_t) S 16 T (vectorC_set_size;) N
+(#elif) K
+( DATATYPE == 1) p n
+(  ) S
+(float) k
+() p 8 T () S 16 T (**matrixA_set, *vectorB, *vectorC_set;) N
+(  size_t) S 16 T (matrixA_size;) N
+(  size_t) S 16 T (vectorB_size;) N
+(  size_t) S 16 T (vectorC_set_size;) N
+(#endif) K n
+(  tmc_alloc_t) p 16 T (alloc = TMC_ALLOC_INIT;) N
+(  ) S
+(char) k
+() p 8 T () S 16 T (complTime_filename[80];) N
+(  ) S
+(char) k
+() p 8 T () S 16 T (calctime_filename[80];) N
+(  ) S
+(char) k
+() p 8 T () S 16 T (calctimerow_filename[80];) N
+(  ) S
+(char) k
+() p 8 T () S 16 T (asymTime_filename[80];) N
+() N
+(  ) S
+(/* parse command line arguments */) c n
+(  ) p
+(int) k
+( opt = 0;) p n
+(  ) S
+(int) k
+( longopt = 0;) p n
+(  ) S
+(struct) k
+( option options[11];) p n
+(  setOpt\(options[0],) S 24 T (") S
+(streamLength) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(K) str
+('\);) p n
+(  setOpt\(options[1],) S 24 T (") S
+(dataSize) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(M) str
+('\);) p n
+(  setOpt\(options[3],) S 24 T (") S
+(interarrival) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(i) str
+('\);  ) p n
+(  setOpt\(options[4],) S 24 T (") S
+(sym_impl) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(s) str
+('\);) p n
+(  setOpt\(options[5],) S 24 T (") S
+(asym_impl) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(a) str
+('\);  ) p n
+(  setOpt\(options[6],) S 24 T (") S
+(multicast) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(m) str
+('\);) p n
+(  setOpt\(options[7],) S 24 T (") S
+(cpu-mapping) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(c) str
+('\);) p n
+(  setOpt\(options[8],) S 24 T (") S
+(suite-length) str
+(",) p 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(') S
+(l) str
+('\);) p n
+(  setOpt\(options[9],) S 24 T (") S
+(help) str
+(",) p 32 T () S 40 T (required_argument,) S 64 T (&longopt,) S 80 T () N
+(benchmark_suite.c) (Page 5/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(') p
+(h) str
+('\);) p n
+(  setOpt\(options[10],) S 24 T () S
+(NULL) K
+(,) p 32 T () S 40 T (0,) S 48 T () S 56 T () S 64 T () S
+(NULL) K
+(,) p 72 T () S 80 T () N
+(0\);) N
+(  ) S
+(while) K
+( \(longopt || -1 != \(opt = getopt_long\(argc, argv, ") p
+(l:K:M:s:a:m:c:hi:) str
+(", options) p n
+(, ) S
+(NULL) K
+(\)\)\) {) p n
+(    ) S
+(switch) K
+( \(opt\) {) p n
+(    ) S
+(case) K
+( ') p
+(l) str
+(':) p 16 T (suite_length = atoi\(optarg\); ) S
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(K) str
+(':   streamSizeK = atoi\(optarg\); ) p
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(M) str
+(':   dataSizeM = atoi\(optarg\); ) p
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(i) str
+(':   interarrival = atoi\(optarg\); ) p
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(s) str
+(':) p n
+(      ) S
+(/* symmetric channels implemetation */) c n
+(      ) p
+(if) K
+( \(!strcmp\(") p
+(udn) str
+(", optarg\)\) sym_impl=IMPL_SYM_UDN;) p n
+(      ) S
+(else) K
+( ) p
+(if) K
+( \(!strcmp\(") p
+(sm_fence) str
+(", optarg\)\) sym_impl=IMPL_SYM_SM_FENCE;) p n
+(      ) S
+(else) K
+( ) p
+(if) K
+( \(!strcmp\(") p
+(sm_nullack) str
+(", optarg\)\) sym_impl=IMPL_SYM_SM_NULLACK;) p n
+(      ) S
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(a) str
+(':) p n
+(      ) S
+(/* asymmetric channels implementations */) c n
+(      ) p
+(if) K
+( \(!strcmp\(") p
+(udn) str
+(", optarg\)\) asym_impl=IMPL_ASYMIN_UDN;) p n
+(      ) S
+(else) K
+( ) p
+(if) K
+( \(!strcmp\(") p
+(sm) str
+(", optarg\)\) asym_impl=IMPL_ASYMIN_SM;) p n
+(      ) S
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(m) str
+(':) p n
+(      ) S
+(/* multicast implementation */) c n
+(      ) p
+(if) K
+( \(!strcmp\(") p
+(pipe) str
+(", optarg\)\) multicast_impl = 0;) p n
+(      ) S
+(else) K
+( ) p
+(if) K
+( \(!strcmp\(") p
+(tree) str
+(", optarg\)\) multicast_impl = 1;) p n
+(      ) S
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(c) str
+(':) p n
+(      ) S
+(/* cpu mapping */) c n
+(      ) p
+(break) K
+(;) p n
+(    ) S
+(case) K
+( ') p
+(h) str
+(':) p n
+(      printf\(") S
+(Usage: benchmark [OPTIONS]\\nOptions:\\n) str
+(") p n
+() S 8 T (     ") S
+(  -K NUM, --streamLength=NUM \\n) str
+(") p n
+() S 8 T (     ") S
+(  -M NUM, --dataSize=NUM \\n) str
+(") p n
+() S 8 T (     ") S
+(  -n NUM, --parallDegree=NUM \\n) str
+(") p n
+() S 8 T (     ") S
+(  -i NUM, --interarrival=NUM \\n) str
+(") p n
+() S 8 T (     ") S
+(  -s {udn,sm_fence,sm_nullack}, --sym_impl={udn,sm_fence,sm_nullack} \\n) str
+(") p n
+() S 8 T (     ") S
+(  -a {udn,sm}, --asym_impl={udn,sm} \\n) str
+(") p n
+() S 8 T (     ") S
+(  -m {pipe,tree}, --multicast={pipe,tree} \\n) str
+(") p n
+() S 8 T (     ") S
+(  -c {linear,adhoc:NUM,NUM,...}, --cpu-mapping={linear,adhoc:NUM,NUM,...} \\n) str
+(") p n
+() S 8 T (     ") S
+(  -h, --help) str
+(") p n
+() S 8 T (     ") S
+(\\n) str
+("\);) p n
+(      ) S
+(break) K
+(;) p n
+(    ) S
+(case) K
+( 0:    opt=longopt; ) p
+(continue) K
+(;) p n
+(    }) N
+(    longopt = 0;) N
+(  }) N
+() N
+(  ERRHAND\(gettimeofday\(&time_start_comp, ) S
+(NULL) K
+(\)\);) p n
+() N
+(  printf\(") S
+(streamSize dataSize interarrivalServiceT symImpl asymImpl) str
+(") p n
+() S 8 T ( ") S
+(   %d %d %d %d %d\\n) str
+(",) p n
+() S 8 T ( streamSizeK, dataSizeM, interarrival, sym_impl, asym_impl\);) N
+() N
+(#ifdef) K
+( CALC_TIME) p n
+(  sprintf\(calctime_filename,) N
+() S 8 T (  ") S
+(outs_benchmark_suite/) str
+("VERSION_STRING") p
+(_%d%d_%d_%d_%d_calctime.dbg) str
+(",) p n
+() S 8 T (  sym_impl, asym_impl, streamSizeK, interarrival, dataSizeM\);) N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == \(calctime_file = fopen\(calctime_filename, ") p
+(a) str
+("\)\)\)) p n
+(    perror\(") S
+(create calctime file) str
+("\);) p n
+() N
+(  sprintf\(calctimerow_filename,) N
+() S 8 T (  ") S
+(outs_benchmark_suite/) str
+("VERSION_STRING") p
+(_%d%d_%d_%d_%d_calctimerow.dbg) str
+(",) p n
+(benchmark_suite.c) (Page 6/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (3/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T (  sym_impl, asym_impl, streamSizeK, interarrival, dataSizeM\);) N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == \(calctimerow_file = fopen\(calctimerow_filename, ") p
+(a) str
+("\)\)\)) p n
+(    perror\(") S
+(create calctimerow file) str
+("\);) p n
+(#endif) K n
+() p n
+(#ifdef) K
+( CALC_TIME_ROW) p n
+(  sprintf\(calctimerow_filename,) N
+() S 8 T (  ") S
+(outs_benchmark_suite/) str
+("VERSION_STRING") p
+(_%d%d_%d_%d_%d_calctimerow_2.dbg) str
+(",) p n
+() S 8 T (  sym_impl, asym_impl, streamSizeK, interarrival, dataSizeM\);) N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == \(calctimerow_file = fopen\(calctimerow_filename, ") p
+(a) str
+("\)\)\)) p n
+(    perror\(") S
+(create calctimerow file) str
+("\);) p n
+(#endif) K n
+() p n
+(#ifdef) K
+( ASYM_TIME) p n
+(  sprintf\(asymTime_filename,) N
+() S 8 T (  ") S
+(outs_benchmark_suite/) str
+("VERSION_STRING") p
+(_%d%d_%d_%d_%d_asymtime.dbg) str
+(",) p n
+() S 8 T (  sym_impl, asym_impl, streamSizeK, interarrival, dataSizeM\);) N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == \(asymTime_file = fopen\(asymTime_filename, ") p
+(a) str
+("\)\)\)) p n
+(    perror\(") S
+(create asymtime file) str
+("\);) p n
+(#endif) K n
+() p n
+(#if) K
+( ! ) p
+(defined) K
+( CALC_TIME && ! ) p
+(defined) K
+( CALC_TIME_ROW && ! ) p
+(defined) K
+( ASYM_TIME && ! ) p
+(d) K n
+(efined) S
+( DONT_WRITE_RESULT) p n
+(  ) S
+(/* write Completion Time \(Tc\) in file if and only if are not taken) c n
+(   * other measures */) N
+(  sprintf\(complTime_filename,) p n
+() S 8 T (  ") S
+(outs_benchmark_suite/) str
+("VERSION_STRING") p
+(_%d%d_%d_%d_%d.dat) str
+(",) p n
+() S 8 T (  sym_impl, asym_impl, streamSizeK, interarrival, dataSizeM\);) N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == \(complTime_file = fopen\(complTime_filename, ") p
+(a) str
+("\)\)\)) p n
+(    ;) N
+(#endif) K n
+() p n
+(#if) K
+( DATATYPE == 0) p n
+(  matrixA_size = ) S
+(sizeof) K
+(\() p
+(int) k
+(\)*dataSizeM*dataSizeM;) p n
+(  vectorB_size = ) S
+(sizeof) K
+(\() p
+(int) k
+(\)*dataSizeM;) p n
+(  vectorC_set_size = ) S
+(sizeof) K
+(\() p
+(int) k
+(\)*streamSizeK*dataSizeM;  ) p n
+(#elif) K
+( DATATYPE == 1) p n
+(  matrixA_size = ) S
+(sizeof) K
+(\() p
+(float) k
+(\)*dataSizeM*dataSizeM;) p n
+(  vectorB_size = ) S
+(sizeof) K
+(\() p
+(float) k
+(\)*dataSizeM;) p n
+(  vectorC_set_size = ) S
+(sizeof) K
+(\() p
+(float) k
+(\)*streamSizeK*dataSizeM;) p n
+(#endif) K n
+() p n
+(  ) S
+(/* setup udn hardwall */) c n
+(  ERRHAND\(tmc_cpus_get_dataplane_cpus\(&dp\)\);) p n
+(  memcpy\(&hardwall, &dp, ) S
+(sizeof) K
+(\(cpu_set_t\)\);) p n
+(  ) S
+(/* set my cpu \(dataplane\) */) c n
+(  ERRHAND\(main_cpu = tmc_cpus_find_last_cpu\(&dp\)\);) p n
+(  ERRHAND\(tmc_cpus_set_my_cpu\(main_cpu\)\);) N
+(  tmc_cpus_remove_cpu\(&dp, main_cpu\);) N
+() N
+(  ) S
+(/* do suite_length iteatrations of benchmark */) c n
+(  ) p
+(for) K
+( \(l=0; l<suite_length; l++\) {) p n
+(    printf\(") S
+(suite number %d\\n) str
+(", l\);) p n
+(    ) S
+(/* execute benchmark for all parallelism degree */) c n
+(    ) p
+(for) K
+( \(parallDegree=1; parallDegree<MAX_PARALLDEGREE; parallDegree++\) {) p n
+(      ) S
+(if) K
+( \(0 != \(dataSizeM % parallDegree\)\) ) p
+(continue) K
+(;) p n
+() N
+(      printf\(") S
+(suite %d, parallel degree = %d\\n) str
+(", l, parallDegree\);) p n
+() N
+(      memcpy\(&dp_cur, &dp, ) S
+(sizeof) K
+(\(cpu_set_t\)\);) p n
+(    ) N
+(      memset\(&gen_arg, 0, ) S
+(sizeof) K
+(\(gen_arg\)\);) p n
+(benchmark_suite.c) (Page 7/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(      memset\(&col_arg, 0, ) p
+(sizeof) K
+(\(col_arg\)\);) p n
+(      memset\(&wor_arg, 0, ) S
+(sizeof) K
+(\(wor_arg\)\);) p n
+() N
+(      ) S
+(/* initialize udn hardwall with all dataplane cpus */) c n
+(      ERRHAND\(tmc_udn_init\(&hardwall\)\);) p n
+() N
+(      ) S
+(/* allocate and initialize data structures */) c n
+(      ERRHAND_NN\(matrixA_set = tmc_alloc_map\(&alloc, streamSizeK * ) p
+(sizeof) K
+(\() p
+(void) k
+( *) p n
+(\)\)\);) N
+(      ) S
+(for) K
+( \(h=0; h<streamSizeK; h++\) {) p n
+() S 8 T (ERRHAND_NN\(matrixA_set[h] = tmc_alloc_map\(&alloc, matrixA_size\)\);) N
+() S 8 T () S
+(for) K
+( \(i=0; i<dataSizeM; i++\)) p n
+() S 8 T (  ) S
+(for) K
+( \(j=0; j<dataSizeM; j++\)) p n
+() S 8 T (    *\(matrixA_set[h]+i*dataSizeM+j\) = dataSizeM*i + j;) N
+(      }) N
+(      ERRHAND_NN\(vectorB = tmc_alloc_map\(&alloc, vectorB_size\)\);) N
+(      ) S
+(for) K
+( \(i=0; i<dataSizeM; i++\) vectorB[i] = i;) p n
+(      ERRHAND_NN\(vectorC_set = tmc_alloc_map\(&alloc, vectorC_set_size\)\);) N
+() N
+(      ) S
+(/* setting task args: cpus and worker rank */) c n
+(      ERRHAND\(gen_arg.cpu = tmc_cpus_find_nth_cpu\(&dp_cur, gen_cpu\)\);) p n
+(      ERRHAND\(col_arg.cpu = tmc_cpus_find_nth_cpu\(&dp_cur, col_cpu\)\);) N
+(      tmc_cpus_remove_cpu\(&dp_cur, gen_arg.cpu\);) N
+(      tmc_cpus_remove_cpu\(&dp_cur, col_arg.cpu\);) N
+(      worker_cpu_mapping_sequential\(wor_arg, parallDegree, &dp_cur\); ) S
+(/* <-- */) c n
+(  ) p n
+(      ) S
+(/* setting task args: channels */) c n
+(      udn_param.dq_snd = 1;) p n
+(      udn_param.dq_rcv = 0;) N
+(      gen_arg.ch_out =) N
+(      ) S 8 T (channel_sym_fun[sym_impl].create\(gen_arg.cpu, wor_arg[0].cpu, &udn_param) N
+(\);) N
+(      ) N
+(      create_depth_tree\(wor_arg, parallDegree, log2\(parallDegree\), 0, -1, &gen_a) N
+(rg\);) N
+(      ) S
+(//[DEBUG] test_create_depth_tree\(wor_arg, parallDegree\);) c n
+(      ) p
+(for) K
+( \(i=0; i<parallDegree; i++\) {) p n
+() S 8 T () S
+(/* array necessario per il costruttore di un canale asimmetrico */) c n
+() p 8 T (worker_cpus[i] = wor_arg[i].cpu;) N
+(      }) N
+(      worker_cpus[parallDegree] = -1;) N
+() N
+(      udn_param.dq_snd = 3;) N
+(      udn_param.dq_rcv = 0;) N
+(      ch_results =) N
+() S 8 T (channel_asym_fun[asym_impl].create\(col_arg.cpu, worker_cpus, &udn_param\)) N
+(;) N
+() N
+(      col_arg.ch_in = ch_results;) N
+() N
+(      ) S
+(/* setting task args: others */) c n
+(      gen_arg.interarrival = interarrival;) p n
+(      gen_arg.matrixA_set = matrixA_set;) N
+(      ) S
+(for) K
+( \(i=0; i<parallDegree; i++\) {) p n
+() S 8 T (wor_arg[i].vectorB = vectorB;) N
+(#if) K
+( GATHER == 0) p n
+() S 8 T (wor_arg[i].vectorC_set = vectorC_set;) N
+(#endif) K n
+(      }) p n
+(      col_arg.vectorC_set = vectorC_set;) N
+(  ) N
+(  ) N
+(benchmark_suite.c) (Page 8/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (4/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(      ) p
+(/* start computation */) c n
+(      ERRHAND_NZ\(pthread_barrier_init\(&start_computation, ) p
+(NULL) K
+(, parallDegree+2\)\)) p n
+(;) N
+(      ERRHAND_NZ\(pthread_barrier_init\(&end_computation, ) S
+(NULL) K
+(, parallDegree+2\)\);) p n
+(      ERRHAND_NZ\(pthread_create\(th, ) S
+(NULL) K
+(, task_generator, \() p
+(void) k
+( *\)&gen_arg\)\);) p n
+(      ERRHAND_NZ\(pthread_create\(th+1, ) S
+(NULL) K
+(, task_collector, \() p
+(void) k
+( *\)&col_arg\)\);) p n
+(      ) S
+(for) K
+( \(i=0; i<parallDegree; i++\)) p n
+() S 8 T (ERRHAND_NZ\(pthread_create\(th+i+2, ) S
+(NULL) K
+(, task_worker, \() p
+(void) k
+( *\)\(wor_arg+i\)) p n
+(\)\);) N
+() N
+(      ) S
+(/* wait computation end */) c n
+(      ) p
+(for) K
+( \(i=0; i<parallDegree+2; i++\)) p n
+() S 8 T (pthread_join\(th[i], ) S
+(NULL) K
+(\);) p n
+() N
+(      ) S
+(/* destory environment */) c n
+(      ) p
+(for) K
+( \(i=0; i<streamSizeK; i++\)) p n
+() S 8 T (ERRHAND\(tmc_alloc_unmap\(matrixA_set[i], matrixA_size\)\);) N
+(      ERRHAND\(tmc_alloc_unmap\(matrixA_set, streamSizeK * ) S
+(sizeof) K
+(\() p
+(void) k
+( *\)\)\);) p n
+(      ERRHAND\(tmc_alloc_unmap\(vectorB, vectorB_size\)\);) N
+(      ERRHAND\(tmc_alloc_unmap\(vectorC_set, vectorC_set_size\)\);) N
+(      channel_sym_fun[sym_impl].destroy\(&gen_arg.ch_out\);) N
+(      channel_asym_fun[asym_impl].destroy\(&col_arg.ch_in\);) N
+(      ) S
+(for) K
+( \(i=0; i<parallDegree; i++\) {) p n
+() S 8 T () S
+(if) K
+( \() p
+(NULL) K
+( != wor_arg[i].ch_out_left\)) p n
+() S 8 T (  channel_sym_fun[sym_impl].destroy\(&wor_arg[i].ch_out_left\);) N
+() S 8 T () S
+(if) K
+( \() p
+(NULL) K
+( != wor_arg[i].ch_out_right\)) p n
+() S 8 T (  channel_sym_fun[sym_impl].destroy\(&wor_arg[i].ch_out_right\);) N
+(      }) N
+(      ERRHAND\(tmc_udn_close\(\)\);) N
+() N
+(    } ) S
+(/* end for \(parallDegree=1; parallDegree<MAX_PARALLDEGREE; parallDegree++\)) c n
+( */) N
+(  } ) p
+(/* end for \(l=0; l<suite_length; l++\) */) c n
+(  ) p n
+(  ERRHAND\(gettimeofday\(&time_end_comp, ) S
+(NULL) K
+(\)\);) p n
+(  timersub\(&time_end_comp, &time_start_comp, &time_comp\);) N
+(  printf\(") S
+(time elapsed: %ld sec %f msec\\n) str
+(", time_comp.tv_sec, time_comp.tv_usec/\() p
+(double) k
+(\)1) p n
+(000\);) N
+() N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( != complTime_file\) fclose\(complTime_file\);) p n
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( != calctime_file\) fclose\(calctime_file\);) p n
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( != calctimerow_file\) fclose\(calctimerow_file\);) p n
+() N
+(  ) S
+(return) K
+( 0;) p n
+(}) N
+() N
+(void) k
+( *) p n
+(task_generator\() S
+(void) k
+( *arg\)) p n
+({) N
+(  gen_arg_t ) S 16 T () S 24 T (*Arg = arg;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( ) p 24 T (*ch = Arg->ch_out;) N
+(#if) K
+( DATATYPE == 0) p n
+(  ) S
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (**A = Arg->matrixA_set;) N
+(#elif) K
+( DATATYPE == 1) p n
+(  ) S
+(register) K
+( ) p
+(float) k
+( ) p 24 T (**A = Arg->matrixA_set;) N
+(#endif) K n
+(  ) p
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (interarrival = Arg->interarrival;) N
+(  ) S
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (K = streamSizeK;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( ) p 24 T (\(*send\)\() S
+(void) k
+( *, ) p
+(void) k
+( *\) = channel_sym_fun[sym_impl].send) p n
+(;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T () S 24 T (i, cpu = Arg->cpu;) N
+(  uint_reg_t) S 16 T () S 24 T (start;) N
+(benchmark_suite.c) (Page 9/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(#ifdef) K
+( DEBUG) p n
+(  printf\(") S
+([DBG] generator: cpu ch_out mtrA %d %p %p\\n) str
+(", cpu, ch, A\);) p n
+(#endif) K n
+() p n
+(  ERRHAND_TILERA\(tmc_cpus_set_my_cpu\(cpu\)\);) N
+(  ERRHAND_TILERA\(tmc_udn_activate\(\)\);) N
+() N
+(  pthread_barrier_wait\(&start_computation\);) N
+(  a = get_clock_cycle;) N
+(  ) N
+(  ) S
+(for) K
+( \(i=0; i<K; i++\) {) p n
+(    start = get_clock_cycle;) N
+(    send\(ch, \() S
+(void) k
+( *\)\(A[i]\)\);) p n
+(    ) S
+(while) K
+( \(get_clock_cycle - start < interarrival\) ;) p n
+(  }) N
+() N
+(  pthread_barrier_wait\(&end_computation\);) N
+() N
+(  ) S
+(return) K
+( \() p
+(void) k
+( *\)) p
+(NULL) K
+(;) p n
+(}) N
+(    ) N
+(void) k
+( *) p n
+(task_worker\() S
+(void) k
+( *arg\)) p n
+({) N
+(  worker_arg_t *) S 24 T (Arg = arg;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (ch_in = Arg->ch_in;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (ch_out_left = Arg->ch_out_left;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (ch_out_right = Arg->ch_out_right;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (ch_out_result = ch_results;) N
+(  ) S
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (M = dataSizeM;) N
+(  ) S
+(/** partition size **/) c n
+(  ) p
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (g = dataSizeM / parallDegree;) N
+(  ) S
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (K = streamSizeK;) N
+(#if) K
+( DATATYPE == 0) p n
+(  ) S
+(register) K
+( ) p
+(int) k
+( *) p 24 T (B = Arg->vectorB;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T () S 24 T (*A;) N
+(  ) S
+(/** */) c n
+(  ) p
+(int) k
+() p 8 T () S 16 T () S 24 T (*result_base;) N
+(  ) S
+(/** */) c n
+(  ) p
+(int) k
+() p 8 T () S 16 T () S 24 T (*result;) N
+(  size_t) S 16 T () S 24 T (result_size = K * \(g+2\) * ) S
+(sizeof) K
+(\() p
+(int) k
+(\);) p n
+(#elif) K
+( DATATYPE == 1) p n
+(  ) S
+(register) K
+( ) p
+(float) k
+( *) p 24 T (B = Arg->vectorB;) N
+(  ) S
+(float) k
+() p 8 T () S 16 T () S 24 T (*A;) N
+(  ) S
+(float) k
+() p 8 T () S 16 T () S 24 T (*result;) N
+(  ) S
+(float) k
+() p 8 T () S 16 T () S 24 T (*result_base;) N
+(  size_t) S 16 T () S 24 T (result_size = K * \(g+2\) * ) S
+(sizeof) K
+(\() p
+(float) k
+(\);) p n
+(#endif) K n
+(  ) p
+(register) K
+( ) p
+(void) k
+( ) p 24 T (\(*send\)\() S
+(void) k
+( *, ) p
+(void) k
+( *\) = channel_sym_fun[sym_impl].send) p n
+(;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (\(*receive\)\() S
+(void) k
+( *\) = channel_sym_fun[sym_impl].receive;) p n
+(  ) S
+(register) K
+( ) p
+(void) k
+() p 16 T () S 24 T (\(*asym_send\)\() S
+(void) k
+( *, ) p
+(void) k
+( *, ) p
+(int) k
+(\) = channel_asym_fun[asy) p n
+(m_impl].send;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T () S 24 T (h, ii, i, j, cpu = Arg->cpu, rank = Arg->rank;) N
+(#if) K
+( GATHER == 1) p n
+(  tmc_alloc_t) S 16 T () S 24 T (alloc = TMC_ALLOC_INIT;) N
+(#elif) K
+( DATATYPE == 0) p n
+(  ) S
+(register) K
+( ) p
+(int) k
+( *) p 24 T (C = Arg->vectorC_set;) N
+(#elif) K
+( DATATYPE == 1) p n
+(  ) S
+(register) K
+( ) p
+(float) k
+( *) p 24 T (C = Arg->vectorC_set;) N
+(#endif) K n
+(benchmark_suite.c) (Page 10/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (5/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (11-12) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p n
+(  uint_reg_t calc_start, start_asym_send, calc_row_start;) N
+(  uint64_t calc_sum = 0;) N
+(  uint64_t calc_row_sum = 0;) N
+(  uint64_t asym_time = 0;) N
+() N
+(#ifdef) K
+( DEBUG) p n
+(  printf\(") S
+([DBG] worker: cpu rank ch_in ch_out_l ch_out_r vecB %d %d %p %p %p %p\\n) str
+(",) p n
+() S 8 T ( cpu, rank, ch_in, ch_out_left, ch_out_right, B\);) N
+(#endif) K n
+() p n
+(#if) K
+( GATHER == 1 ) p n
+(  ) S
+(/* alloc set of my partial results \(vector of g+2 integers\) */) c n
+(  ERRHAND_TILERA_NN\(result_base = tmc_alloc_map\(&alloc, result_size\)\);) p n
+(  result = result_base;) N
+(  ) S
+(/* for each vector: last two integer are my rank and the position in) c n
+(   * the stream */) N
+(  result[g] = rank;) p n
+(#else) K n
+(  result_base = C;) p n
+(  result = result_base + rank*g;) N
+(#endif) K n
+() p n
+(  ERRHAND_TILERA\(tmc_cpus_set_my_cpu\(cpu\)\);) N
+(  ERRHAND_TILERA\(tmc_udn_activate\(\)\);) N
+() N
+(  pthread_barrier_wait\(&start_computation\);) N
+() N
+(  ) S
+(for) K
+( \(h=0; h<K; h++,) p n
+(#if) K
+( GATHER == 1) p n
+() S 8 T ( result+=\(g+2\)\) {) N
+(#else) K n
+() p 8 T ( result+=M\) {) N
+(#endif) K n
+(    A = receive\(ch_in\);) p n
+(    ) S
+(if) K
+( \() p
+(NULL) K
+( != ch_out_left\)) p n
+(      send\(ch_out_left, A\);) N
+(    ) S
+(if) K
+( \() p
+(NULL) K
+( != ch_out_right\)) p n
+(      send\(ch_out_right, A\);    ) N
+() N
+(#ifdef) K
+( CALC_TIME) p n
+(    calc_start = get_clock_cycle; ) S
+(/* START CALC */) c n
+(#endif) K n
+() p n
+(    ) S
+(for) K
+( \(ii=0, i=g*rank; ii<g; ii++, i++\) {) p n
+(#ifdef) K
+( CALC_TIME_ROW) p n
+(      calc_row_start = get_clock_cycle;) N
+(#endif) K n
+(      result[ii] = 0;) p n
+(      ) S
+(for) K
+( \(j=0; j<M; j++\) {) p n
+() S 8 T (result[ii] += *\(A+i*M+j\) * B[j];) N
+(      }) N
+(#ifdef) K
+( CALC_TIME_ROW) p n
+(      calc_row_sum += get_clock_cycle - calc_row_start; ) N
+(#endif) K n
+(    }) p n
+() N
+(#if) K
+( ) p
+(defined) K
+( CALC_TIME) p n
+(    calc_sum += get_clock_cycle - calc_start;) N
+(#endif) K n
+() p n
+(#if) K
+( GATHER == 1) p n
+(benchmark_suite.c) (Page 11/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(    result[g] = rank; ) p
+(/* my rank */) c n
+(    result[g+1] = h; ) p
+(/* position of stream element */) c n
+(#endif) K n
+() p n
+(#if) K
+( ) p
+(defined) K
+( ASYM_TIME) p n
+(    start_asym_send = get_clock_cycle;) S 40 T () S
+(/* END CALC */) c n
+(#endif) K n
+() p n
+(    asym_send\(ch_out_result, result, rank\);) N
+() N
+(#ifdef) K
+( ASYM_TIME) p n
+(    asym_time += get_clock_cycle - start_asym_send;) N
+(#endif) K n
+() p n
+(  } ) S
+(/* end for \(h=0; h<K; h++\) */) c n
+() p n
+(  pthread_barrier_wait\(&end_computation\);) N
+() N
+() N
+() N
+(#ifdef) K
+( CALC_TIME) p n
+(  ) S
+(//print out calculation time and calculation time for a single row) c n
+(  ) p
+(if) K
+( \() p
+(NULL) K
+( == calctime_file\) calctime_file = stdout;) p n
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == calctimerow_file\) calctimerow_file = stdout;) p n
+(  fprintf\(calctime_file, ") S
+(%d %f\\n) str
+(",) p n
+() S 8 T (  parallDegree, \(\() S
+(double) k
+(\)calc_sum\)/K\);) p n
+(  fprintf\(calctimerow_file, ") S
+(%d %f\\n) str
+(",) p n
+() S 8 T (  parallDegree, \(\() S
+(double) k
+(\)calc_sum\)/K/g\);) p n
+(#endif) K n
+() p n
+(#ifdef) K
+( CALC_TIME_ROW) p n
+(  ) S
+(//print out calculation time for a single row) c n
+(  ) p
+(if) K
+( \() p
+(NULL) K
+( == calctimerow_file\) calctimerow_file = stdout;) p n
+(  fprintf\(calctimerow_file, ") S
+(%d %f\\n) str
+(",) p n
+() S 8 T (  parallDegree, \(\() S
+(double) k
+(\)calc_row_sum\)/\(K*g\)\);) p n
+() N
+(  printf\(") S
+(calc_row_sum = %lu\\n) str
+(", \() p
+(long) k
+( ) p
+(unsigned) k
+(\)\(calc_row_sum\)\);) p n
+(#endif) K n
+() p n
+(#ifdef) K
+( ASYM_TIME) p n
+(  ) S
+(//print out time for asymmetric communication) c n
+(  ) p
+(if) K
+( \() p
+(NULL) K
+( == asymTime_file\)  asymTime_file = stdout;) p n
+(  fprintf\(asymTime_file, ") S
+(%d %d %f\\n) str
+(",) p n
+() S 8 T (  parallDegree, M, \(\() S
+(double) k
+(\)asym_time\)/K\);) p n
+(#endif) K n
+() p n
+(  ERRHAND_TILERA\(tmc_alloc_unmap\(result_base, result_size\)\);) N
+() N
+(  ) S
+(return) K
+( \() p
+(void) k
+( *\)) p
+(NULL) K
+(;) p n
+(}) N
+() N
+(void) k
+( *) p n
+(task_collector\() S
+(void) k
+( *arg\)) p n
+({) N
+(  col_arg_t *) S 16 T () S 24 T (Arg = arg;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (ch = Arg->ch_in;) N
+(#if) K
+( GATHER == 1) p n
+(# if) K
+( DATATYPE == 0) p n
+(  ) S
+(register) K
+( ) p
+(int) k
+( *) p 24 T (C = Arg->vectorC_set;) N
+(# elif) K
+( DATATYPE == 1) p n
+(  ) S
+(register) K
+( ) p
+(float) k
+( *) p 24 T (C = Arg->vectorC_set;) N
+(# endif) K n
+(benchmark_suite.c) (Page 12/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (6/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (13-14) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(  ) p
+(register) K
+( ) p
+(const) K
+( ) p
+(int) k
+() p 24 T (g = dataSizeM / parallDegree;) N
+(  ) S
+(register) K
+( ) p
+(const) K
+( ) p
+(int) k
+() p 24 T (M = dataSizeM;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T () S 24 T (j, jj;) N
+(#endif) K
+(  ) p n
+(  ) S
+(register) K
+( ) p
+(const) K
+( ) p
+(int) k
+() p 24 T (K = streamSizeK;) N
+(  ) S
+(register) K
+( ) p
+(int) k
+() p 16 T () S 24 T (n = parallDegree;) N
+(  ) S
+(register) K
+( ) p
+(void) k
+( *) p 24 T (\(*receive\)\() S
+(void) k
+( *\) = channel_asym_fun[asym_impl].receive) p n
+(;) N
+(  ) S
+(int) k
+() p 8 T () S 16 T () S 24 T (h, i, cpu = Arg->cpu;) N
+() N
+(#ifdef) K
+( DEBUG) p n
+(#if) K
+( GATHER == 1) p n
+(  printf\(") S
+([DBG] collector: cpu ch_in vecC %d %p %p\\n) str
+(", cpu, ch, C\);) p n
+(#else) K n
+(  printf\(") p
+([DBG] collector: cpu ch_in %d %p\\n) str
+(", cpu, ch\);) p n
+(#endif) K n
+(#endif) N
+() p n
+(  ERRHAND_TILERA\(tmc_cpus_set_my_cpu\(cpu\)\);) N
+(  ERRHAND_TILERA\(tmc_udn_activate\(\)\);) N
+() N
+(  pthread_barrier_wait\(&start_computation\);) N
+() N
+(  ) S
+(for) K
+( \(h=0; h<K; h++\)) p n
+(    ) S
+(for) K
+( \(i=0; i<n; i++\) {) p n
+(#if) K
+( GATHER == 1) p n
+(# if) K
+( DATATYPE == 0) p n
+(      ) S
+(register) K
+( ) p
+(int) k
+( *result = receive\(ch\);) p n
+(# elif) K
+( DATATYPE == 1) p n
+(      ) S
+(register) K
+( ) p
+(float) k
+( *result = receive\(ch\);) p n
+(# endif) K n
+(      ) p
+(register) K
+( ) p
+(int) k
+( sender = result[g];) p n
+(      ) S
+(register) K
+( ) p
+(int) k
+( stream_pos = result[g+1];) p n
+() N
+(      ) S
+(for) K
+( \(jj=0, j=g*sender; jj<g; j++, jj++\)) p n
+() S 8 T (*\(C+stream_pos*M+j\) = result[jj];) N
+(#else) K n
+(      \() p
+(void) k
+(\)receive\(ch\);) p n
+(#endif) K n
+(    }) p n
+() N
+(  printf\(") S
+([DBG] end collector) str
+("\);) p n
+() N
+(  b = get_clock_cycle;) N
+() N
+(  pthread_barrier_wait\(&end_computation\);) N
+() N
+(  ) N
+() N
+(  ) S
+(if) K
+( \() p
+(NULL) K
+( == complTime_file\) complTime_file = stdout;) p n
+(  fprintf\(complTime_file, ") S
+(%d %f\\n) str
+(", n, CYCLE_LENGTH_MILLI*\(b-a\)\);) p n
+() N
+(  ) S
+(return) K
+( \() p
+(void) k
+( *\)) p
+(NULL) K
+(;) p n
+(}) N
+() N
+(/**) c n
+( * node) S 8 T () S 16 T (array di parametri di un worker) N
+( * length) S 16 T (numero di elementi nell'array node) N
+( * height) S 16 T (altezza albero binario mappato sull'array node) N
+( * index) S 16 T (indice corrente nell'array node) N
+( * parent_index indice del padre nell'albero mappato in node) N
+( * cpus) S 8 T () S 16 T (insieme di cpu dataplane disponibili per i workers, i workers) N
+(benchmark_suite.c) (Page 13/15) (Mar 20, 13 15:16) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( *) c 8 T () S 16 T (sono disposti in modo sequenziale su tale insieme di cpu) N
+( */) N
+(void) k n
+(create_depth_tree\(worker_arg_t *node, ) p
+(int) k
+( length, ) p
+(int) k
+( height, ) p
+(int) k
+( index,) p n
+() S 8 T () S 16 T (  ) S
+(int) k
+( parent_index, gen_arg_t *generator\)) p n
+({) N
+(  ) S
+(/* Alla mia struttura node[index] creo ed imposto ch_in. I miei) c n
+(   * ch_out_left e ch_out_right saranno impostati rispettivamente dal) N
+(   * mio figlio sinistro e dal mio figlio destro destro) N
+(   */) N
+(  ) p
+(int) k
+( left_index, right_index;) p n
+(  ch_sym_ref_ad1_udn_param_t udn_param;) N
+() N
+(  ) S
+(if) K
+( \(-1 == parent_index\) {) p n
+(    ) S
+(/* I'M THE ROOT */) c n
+(    ) p
+(/* set my input channel */) c n
+(    node[index].ch_in = generator->ch_out;) p n
+(  } ) S
+(else) K
+( { ) p n
+(    ) S
+(/* set my input channel */) c n
+(    ) p
+(if) K
+( \(index == parent_index + 1\) {) p n
+(      ) S
+(/* I'M THE LEFT CHILD */) c n
+(      udn_param.dq_snd = 1;) p n
+(      udn_param.dq_rcv = 0;) N
+(      node[index].ch_in =) N
+() S 8 T (channel_sym_fun[sym_impl].create\(node[parent_index].cpu,) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T ( node[index].cpu, &udn_param\);) N
+(    } ) S
+(else) K
+( {) p n
+(      ) S
+(/* I'M THE RIGHT CHILD */) c n
+(      udn_param.dq_snd = 2;) p n
+(      udn_param.dq_rcv = 0;) N
+(      node[index].ch_in =) N
+() S 8 T (channel_sym_fun[sym_impl].create\(node[parent_index].cpu,) N
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T ( node[index].cpu, &udn_param\);) N
+(    }      ) N
+(    ) S
+(/* set output channel of MY PARENT, from my parent to me */) c n
+(    ) p
+(if) K
+( \(index == parent_index + 1\)) p n
+(      node[parent_index].ch_out_left = node[index].ch_in;) N
+(    ) S
+(else) K n
+(      node[parent_index].ch_out_right = node[index].ch_in;) p n
+(  }) N
+(  ) S
+(/* set null my output channels */) c n
+(  node[index].ch_out_left = ) p
+(NULL) K
+(;) p n
+(  node[index].ch_out_right = ) S
+(NULL) K
+(;) p n
+(  ) S
+(if) K
+( \(height > 0\) {) p n
+(    ) S
+(/* I'M NOT A LEAF */) c n
+(    left_index = index + 1;) p n
+(    right_index = index + \(1 << height\);) N
+(    ) S
+(if) K
+( \(left_index < length\)) p n
+(      create_depth_tree\(node, length, height-1, left_index, index, generator\);) N
+(    ) S
+(if) K
+( \(right_index < length\)) p n
+(      create_depth_tree\(node, length, height-1, right_index, index, generator\);) N
+(  } ) N
+(}) N
+() N
+(void) k n
+(test_create_depth_tree\(worker_arg_t *array, ) p
+(int) k
+( size\)) p n
+({) N
+(  ) S
+(int) k
+( i;) p n
+(  ) S
+(for) K
+( \(i=0; i<size; i++\) ) p n
+(    printf\(") S
+(i cpu[i] ch_in[i] ch_out_left[i] ch_out_right[i] %d %d %p %p %p \\n) str
+(",) p n
+() S 8 T (   i, array[i].cpu, array[i].ch_in, array[i].ch_out_left,) N
+() S 8 T (   array[i].ch_out_right\);) N
+(benchmark_suite.c) (Page 14/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (7/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (15) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(} ) p n
+() N
+(/**) c n
+( * mappa i threads worker della computazione sulle cpu dataplane) N
+( * disponibili scrivendo i valori di 'cpu' e 'rank' negli elementi) N
+( * dell'array 'wor_arg'. L'insieme di cpu 'dataplanes' deve contenere) N
+( * quelle cpu dataplane disponibili per la sola esecuzione di un unico) N
+( * worker) N
+( */) N
+(int) k n
+(worker_cpu_mapping_sequential\(worker_arg_t *wor_arg, ) p
+(int) k
+( parallDegree,) p n
+() S 8 T () S 16 T () S 24 T (      ) S
+(const) K
+( cpu_set_t *dataplanes\)) p n
+({) N
+(  ) S
+(int) k
+( i;) p n
+(  ) S
+(for) K
+( \(i=0; i<parallDegree; i++\) {) p n
+(    ) S
+(if) K
+( \(-1 == \(wor_arg[i].cpu = tmc_cpus_find_nth_cpu\(dataplanes, i\)\)\)) p n
+(      ) S
+(return) K
+( -1;) p n
+(    wor_arg[i].rank = i;) N
+(  }) N
+(  ) S
+(return) K
+( 0;) p n
+(}) N
+(benchmark_suite.c) (Page 15/15) (Mar 20, 13 15:16) title
+border
+grestore
+(Printed by Federico Mariti) rhead
+(benchmark_suite.c) (8/8) (Gioved\303\254 Maggio 16, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

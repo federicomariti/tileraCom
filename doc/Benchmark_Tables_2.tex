@@ -1,0 +1,117 @@
+%\cellcolor[gray]
+\definecolor{Gray}{gray}{0.9}
+\newcommand{\clr}{\cellcolor[gray]{0.9}}
+
+
+\renewcommand{\arraystretch}{1.5}
+
+\begin{table}[p]
+  \begin{tabular}{|r|c|r||r||r|r|r|}
+    \hline
+    M & \Ta & \emph{Impl} & $n_{\mathrm{opt}}$ & $n$ & $\inscal$ & $\inTsubsystem (\tau)$ \\[2pt]
+    \hline
+    \multirow{2}{*}{56} & \multirow{2}{*}{$4\cdot10^3$ $\tau$ = 4.626 $\microsec$} 
+    & UDN & 21.716     & 56 & 15.529 & 5340.578  \\
+    \cline{3-7}
+    & & SM & 23.568     & 28 & 10.982 & 7552.140  \\
+    \hline
+    \multirow{2}{*}{168} & \multirow{2}{*}{$20\cdot10^3$ $\tau$ = 23.1325 $\microsec$} 
+    & UDN & 37.102     & 56 & 33.894 & 21694.473  \\
+    \cline{3-7}
+    & & SM & 37.672     & 56  & 30.582 & 24044.160 \\
+    \hline
+    \multirow{2}{*}{280} & \multirow{2}{*}{$50\cdot10^3$ $\tau$ = 57.831 $\microsec$} 
+    & UDN & 40.957     & 56  & 37.495 & 54419.290 \\
+    \cline{3-7}
+    & & SM & 41.205     & 56 & 36.937  & 55241.196 \\
+    \hline
+  \end{tabular}
+  \caption{Tempi di servizio effettivo e scalabilit\`a della Map \emph{migliori} quando la Map \`e collo di bottiglia.}
+  \label{tab:scalability_serviceTime_bottleneck}
+\end{table}
+
+\renewcommand{\arraystretch}{1.2}
+
+\begin{table}[p]
+  \begin{tabular}{|r|c|r||r||r|r|r|}
+    \hline
+    M & \Ta & \emph{Impl} & $n_{\mathrm{opt}}$ & $n$ & $\inscal$ & $\inTsubsystem (\tau)$ \\[2pt]
+    \hline
+    \multirow{4}{*}{56} & \multirow{4}{*}{$10\cdot10^3$ $\tau$ = 11.566 $\microsec$} 
+    %14 10089.544800 10133.046000 10031.912000 32.730468 8.219888 0.121656 0.011670 11.669830
+    & \multirow{2}{*}{UDN} &  \multirow{2}{*}{8.446}
+    & 8 & 7.074 & 11723.431 \\
+    & & & & \clr 14 & \clr 8.220 & \clr 10089.545 \\
+    \cline{3-7}
+    & & \multirow{2}{*}{SM} & \multirow{2}{*}{8.713}
+    & 8 & 6.491 & 12776.486 \\
+    & & & & \clr 14 & \clr 8.182 & \clr 10136.235 \\
+    \hline
+    \multirow{4}{*}{168} & \multirow{4}{*}{$50\cdot10^3$ $\tau$ = 57.831 $\microsec$} 
+    & \multirow{2}{*}{UDN} & \multirow{2}{*}{14.718}
+    & 14 & 13.336 & 55139.259 \\
+    & & & & \clr 21 & \clr 14.739 & \clr 49888.153 \\
+    %      & & & & \clr 28 & \clr 14.741 & \clr 49882.893 \\
+    \cline{3-7}
+    & & \multirow{2}{*}{SM} & \multirow{2}{*}{14.807}
+    & 14 & 13.095 & 56151.886 \\
+    & & & & \clr 21 & \clr 14.735 & \clr 49902.936 \\
+    %      & & & & \clr 24 & \clr 14.740 & \clr 49885.909 \\
+    \hline
+    \multirow{4}{*}{280} & \multirow{4}{*}{$10\cdot10^4$ $\tau$ = 115.662 $\microsec$} 
+    & \multirow{2}{*}{UDN} & \multirow{2}{*}{20.441}
+    & 20 & 20.433 & 99859.243 \\
+    & & & & \clr 28 & \clr 20.448 & \clr 99787.616 \\
+    %      & & & & \clr 40 & \clr 20.448 & \clr 99786.505 \\
+    \cline{3-7}
+    & & \multirow{2}{*}{SM} & \multirow{2}{*}{20.503}
+    & 20 & 20.163 & 101196.684 \\
+    & & & & \clr 28 & \clr 20.450 & \clr 99778.438 \\
+    \hline
+  \end{tabular}
+  \caption{Tempi di servizio effettivo e scalabilit\`a della Map quando la Map non \`e collo di bottiglia. Vengono mostrati i valori relativi al grado di parallelismo vicino al valore ottimo calcolato.}
+  \label{tab:scalability_serviceTime_noBottleneck}
+\end{table}
+%% \caption[Tempi di servizio effettivi del benchmark]{Vengono proposti i migliori tempi di servizio, con relativo grado di parallelismo, per due tipologie di tempi di interarrivo: quelli nel quale la Map \`e collo di bottiglia, e quelli in cui la Map non \`e collo di bottiglia.}
+%% \label{tab:scalability_serviceTime}
+
+\renewcommand{\arraystretch}{1}
+
+%% \begin{table}[!h]
+%%   \begin{tabular}{|c|r||r||r|r|r|}
+%%     \hline
+%%     M, \Ta & \emph{Impl} & $n_{\mathrm{opt}}$ & $n$ & $\inscal$ & $\inTsubsystem (\tau)$ \\[2pt]
+%%     \hline
+%%     \multirow{2}{*}{56, 4000 $\tau$ = 4.626 $\microsec$} 
+%%     & UDN & 21.716     & 56 & 15.037 & 5340.578  \\
+%%     \cline{2-6}
+%%     & SM & 23.568     & 28 & 10.660 & 7552.140  \\
+%%     \hline
+%%     \multirow{2}{*}{168, 20000 $\tau$ = 23.1325 $\microsec$} 
+%%     & UDN & 37.102     & 56 & 33.338 & 21694.473  \\
+%%     \cline{2-6}
+%%     & SM & 37.672     & 56  & 30.098 & 24044.160 \\
+%%     \hline
+%%     \multirow{2}{*}{280, 50000 $\tau$ = 57.831 $\microsec$} 
+%%     & UDN & 40.957     & 56  & 37.188 & 54419.290 \\
+%%     \cline{2-6}
+%%     & SM & 41.205     & 56 & 36.644  & 55241.196 \\
+%%     \hline
+%%     \hline
+%%     \multirow{2}{*}{56, 10000 $\tau$ = 11.566 $\microsec$} 
+%%     & UDN &  8.446     & 14 & 8.220 & 10089.545 \\
+%%     \cline{2-6}
+%%     & SM & 8.713      & 14 & 8.182 & 10136.235 \\
+%%     \hline
+%%     \multirow{2}{*}{168, 50000 $\tau$ = 57.831 $\microsec$} 
+%%     & UDN & 14.718     & 28 & 14.741 & 49882.893 \\
+%%     \cline{2-6}
+%%     & SM & 14.807      & 24 & 14.740 & 49885.909 \\
+%%     \hline
+%%     \multirow{2}{*}{280, 100000 $\tau$ = 115.662 $\microsec$} 
+%%     & UDN & 20.441     & 40 & 20.448 & 99786.505 \\
+%%     \cline{2-6}
+%%     & SM & 20.503     & 28 & 20.450 & 99778.438 \\
+%%     \hline
+%%   \end{tabular}
+%% \end{table}

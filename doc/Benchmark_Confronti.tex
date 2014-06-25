@@ -1,0 +1,119 @@
+\begin{figure}[p]
+  \caption[Confronto prestazioni delle due implementazioni dei canali]{Confronto della scalabilit\`a e del tempo di servizio tra le due implementazioni con tempo di interarrivo $\inTa = 4\cdot10^3 \, \tau = 4.6265 \, \microsec$}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Scalabilit\`a del tempo di servizio}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_4000_56.tex}}
+      \caption{Dimensione della matrice 56x56}
+      \label{fig:compare_s_udn_56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_20000_168.tex}}
+      \caption{Dimensione della matrice 168x168}
+      \label{fig:compare_s_udn_168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_50000_280.tex}}
+      \caption{Dimensione della matrice 280x280}
+      \label{fig:compare_s_udn_280}
+    \end{subfigure}
+    \label{fig:compare_s_udn}
+  \end{subfigure}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \hspace{2ex}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Tempi di servizio}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_56.tex}}
+      \caption{Dimensione della matrice 56x56}
+      \label{fig:compare_s_sm_56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_168.tex}}
+      \caption{Dimensione della matrice 168x168}
+      \label{fig:compare_s_sm_168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_280.tex}}
+      \caption{Dimensione della matrice 280x280}
+      \label{fig:compare_s_sm_280}
+    \end{subfigure}
+    \label{fig:compare_s_sm}
+  \end{subfigure}
+  \label{fig:compare}
+\end{figure}
+
+
+
+
+%% \begin{figure}[p]
+%%   \centering
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-comp-Tc-s_nogatherInt_all_500_181_56.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=56}
+%%   \end{subfigure}
+%%   \vfill
+%%   %%\vspace{5ex}
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-comp-Tc-s_nogatherInt_all_500_181_168.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=168}
+%%   \end{subfigure}
+%%   \vfill
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-comp-Tc-s_nogatherInt_all_500_181_280.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=280}
+%%   \end{subfigure}
+%% \end{figure}
+
+%% \begin{figure}[p]
+%%   \centering
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_56.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=56}
+%%   \end{subfigure}
+%%   \vfill
+%%   %%\vspace{5ex}
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_168.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=168}
+%%   \end{subfigure}
+%%   \vfill
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_280.tex}}
+%%     \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=280}
+%%   \end{subfigure}
+%% \end{figure}

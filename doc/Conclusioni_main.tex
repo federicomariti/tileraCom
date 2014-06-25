@@ -1,0 +1,41 @@
+\section{Conclusioni}
+\label{sct:conclusioni}
+
+Si \`e svolto un primo esperimento finalizzato all'utilizzo di una rete di interconnessione tra processing element di una macchina multi-core per la realizzazione di un supporto alle comunicazioni tra processi. L'implementazione vuole far fronte a problemi di grana molto fine, e per questo motivo il supporto permette lo scambio di messaggi di tipo riferimento. Il problema \`e stato studiato su una macchina ben precisa, il processore Tilera \tile, il quale mette a disposizione dell'utente una rete mesh bidimensionale UDN, che ha buone caratteristiche di scalabilit\`a e che implementa a firmware quattro diversi flussi. \`E stata proposta una implementazione che sfrutta al meglio ci\`o che la macchina offre, seppure con una limitazione: un processo non pu\`o usare pi\`u di quattro canali. Da un lato non si ritiene rilevante una implementazione pi\`u generica, in quanto molte forme di parallelismo sono implementabili con questo vincolo. Dall'altra parte, se vi \`e necessit\`a di utilizzare pi\`u canali, \`e sempre possibile impiegare canali implementati sulla memoria condivisa. Del supporto \`e infatti fornita anche una versione che utilizza l'approccio classico, servendosi della memoria condivisa. La versione su memoria condivisa fa uso di aspetti avanzati, quali la configurazione della coerenza delle cache, resi disponibili dalla specifica macchina utilizzata.
+
+Al fine di confrontare le prestazioni dei due tipi di implementazione, si sono svolti due esperimenti: il primo \`e la misura della latenza di comunicazione, in una applicazione specifica per tale scopo, senza l'esecuzione di alcun calcolo; il secondo \`e l'utilizzo del supporto in una applicazione reale, significativa per i nostri scopi. Le misure del primo esperimento confermano quanto era stato intuito: l'implementazione che usa la rete di interconnessione ha meno della met\`a della latenza di comunicazione della versione che usa la memoria condivisa. Le misure fatte sulla seconda applicazione enfatizzano questo primo risultato: in una applicazione reale si continua a osservare una latenza di comunicazione del supporto UDN inferiore alla met\`a di quella misurata con l'uso della memoria condivisa. Il secondo esperimento inoltre ha mostrato una diminuzione della latenza di accesso alla memoria con l'uso del supporto su UDN, rispetto all'impiego delle comunicazioni su memoria condivisa. Ci\`o \`e conseguenza della diminuzione del numero di accessi alla gerarchia di memoria. Si conclude che tale caratteristica del supporto su UDN ha benefici sulle prestazioni globali dell'applicazione.
+
+L'utilizzo di un supporto alle comunicazioni basato su UDN, piuttosto che su memoria condivisa, \`e risultato significativo per il tipo di comunicazione studiato. Computazioni su stream con grana di calcolo fine richiedono un supporto alle comunicazioni efficiente, soprattutto nel caso in cui l'architettura, come quella del \tile, non disponga dei supporti architetturali per sovrapporre la comunicazione al calcolo. L'utilizzo della UDN per le comunicazioni non solo offre latenze di comunicazione inferiori a quelle del supporto con memoria condivisa, ma \`e caratterizzato da altre caratteristiche importati per le prestazioni di una applicazione di grana fine: i conflitti alla memoria sono ridotti, ed esiste una forma ridotta di sovrapposizione della comunicazione al calcolo.
+%%Si \`e osservato inoltre che l'uso di supporti architetturali distinti per la comunicazione e per l'accesso ai dati, presente con l'implentazione UDN del supporto, riduce i conflitti alla memoria condivisa, con conseguenti benefici nelle prestazioni globali dell'applicazione. 
+
+\subsection{Sviluppi futuri}
+Lo sviluppo pi\`u interessante del lavoro fatto \`e l'implementazione, per mezzo della rete di interconnessione UDN, di canali di tipo arbitrario. Questo permette la realizzazione della comunicazione di messaggi di dimensione arbitraria, per mezzo di una rete di interconnessione e senza l'utilizzo di strutture dati allocate in memoria. Un supporto alle comunicazioni di questo tipo permette un disaccoppiamento completo tra gli strumenti architetturali usati per realizzare le comunicazioni e quelli impiegati per realizzare l'accesso ai dati condivisi in memoria. Per questo motivo, e per le caratteristiche di scalabilit\`a e banda della UDN, si pensa che una realizzazione di questo tipo conduca a risultati ancora pi\`u apprezzabili di quelli ottenuti in questo primo esperimento.
+%in quanto la struttura di interconnessione tra core usata ha caratteristiche di scalablilit\`a con il numero di core ed elevata banda. 
+Per questo tipo di supporto sussistono alcuni problemi progettuali tipici nelle comunicazioni a scambio di messaggi di processi allocati in un grafo di nodi.
+
+Una possibile espansione consiste nel fornire le stesse forme di comunicazione con grado di parallelismo pi\`u alto. Ci\`o pu\`o essere comodo in molti casi per compensare una frequenza media di interarrivo con alta variabilit\`a. L'implementazione di questo aspetto su UDN \`e in gran parte fornito in modo primitivo dalla rete di interconnessione, per cui la realizzazione \`e banale. Nella versione che usa la memoria condivisa \`e richiesta invece una riprogettazione del supporto, valutando se adottare strutture dati lock-free, pi\`u complesse rispetto alla realizzazione con buffer di messaggi condiviso.
+
+Infine, \`e pensabile una realizzazione del supporto su UDN che non limiti il numero di canali per processo. A tal fine \`e richiesto l'uso di una memoria tampone nella quale copiare messaggi o segnali ricevuti dalla UDN ma che appartengono a un canale differente da quello su cui \`e stato invocata la funzionalit\`a del supporto.
+%% * sviluppi futuri
+%%   - grado di asincronia maggiore di uno UDN
+%%   - implementazione generica UDN
+%%   - implementazione di canali con tipo generico => trasmissione di valori arbitrari
+
+
+%% \begin{itemize}
+%% \item misuro il tempo di servizio dimensionando il tempo di interarrivo con il valore del tempo di servizio ideale. La stima del tempo di servizio ideale usa il valore di Tcalc e di \deltacom misurati con uno o due processi, e diversi dal rispettivo valore con un grado di parallelismo diverso (non sono costanti ma dipendono da $n$). Da questa misurazioe ne ricavo anche la scalabilit\`a, e osservo che il sistema rimane collo di bottiglia, soprattutto per grana fine. 
+%% \item Posso fare i confronti dei tempi di servizio tra le due impelmentazioni del supporto.
+%% \item Devo spiegare come mai non si raggiunge il tempo di servizio ideale, il sistema resta un collo di bottiglia quando non dovrebbe esserlo, dai calcoli fatti: ipotizzo che il tempo di calcolo e il tempo di multicast non siano costanti al variare di $n$; dimostro ci\`o misurando questi tempi:
+%%   \begin{itemize}
+%%   \item misuro il tempo di calcolo di un singolo prodotto scalare, facci vedere che per matrici di dimensione piccola tale tempo aumenta notevolmente con il grado di parallelismo.
+%%     \begin{itemize}
+%%     \item per essere ancora pi\`u esaustivo mostro le misure con datai float: la grana \`e pi\`u grande e il tempo di calcolo di un singolo prodotto scalare non aumenta molto al variare di $n$
+%%     \end{itemize}
+%%   \item allo stesso modo prendo il tempo di multicast nel primo worker quando la Map non \`e collo di bottiglia, e faccio vedere che tale tempo aumenta con l'aumentare di $n$.
+%%     \begin{itemize}
+%%     \item Quale tempo di interarrivo scelgo per le diverse dimensioni di M? 
+%%     \item si osserva che con tempi di interarrivo pi\`u stretti il tempo di multicast ha valori pi\`u alti.
+%%     \end{itemize}
+%%   \end{itemize}
+%% \item Un'altra osservazione sul grafico del tempo di calcolo di un singolo prodotto scalare: confrontando le due implementazioni noto che l'aumento di quella UDN \`e inferiore all'aumento di quella SM, questo mi dice che UDN riduce i conflitti alla memoria condivisa, ed \`e anche per questo che funziona meglio rispetto alla SM, con grana fine.
+%% \end{itemize}

@@ -1,0 +1,284 @@
+\documentclass{beamer}
+\usepackage[italian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[lighttt]{lmodern}
+\usepackage{verbatim, listings}
+
+\newcommand{\tile}{TILE\textit{Pro}64}
+\newcommand{\musec}{$\mu \textrm{sec}$}
+\newcommand{\Lcom}{\mathrm{L}_{\mathrm{com}}}
+\newcommand{\Tc}{\mathrm{T}_{\mathrm{C}}}
+%% \institute{Laurea Triennale in Informatica}
+%% \subtitle{blabla bla}
+%% \logo{\includegraphics[width=15mm]{cherubino_black.pdf}}
+
+\title{Supporto a Meccanismi di Comunicazione per Architetture Many-Core}
+\author[Federico Mariti]{{\small Candidato:}\hspace{18ex}  {\small Relatore:} \\ \hspace{3ex}Federico Mariti \hspace{8ex} prof. Marco Vanneschi}
+\date{21 giugno 2013}
+
+\begin{document}
+
+\maketitle
+
+\section{Il lavoro svolto: obiettivi e motivazioni}
+
+\begin{frame}
+  \frametitle{Il lavoro svolto: obiettivi e motivazioni}
+  \begin{itemize}
+  \item Prime sperimentazioni sull'uso di Network on Chip per la realizzazione di un supporto ottimizzato alle comunicazioni tra processi.
+  \item Nuovo approccio all'implementazione del supporto.
+  \item Lo studio \`e realizzato sul Chip~MultiProcessor Tilera~\tile.
+  \item Sono realizzate due implementazioni del supporto:
+    \begin{itemize}
+      \item una che utilizza la memoria condivisa;
+      \item l'altra che usa la rete di interconnessione messa a disposizione dal processore.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Reti di interconnessione del Tilera \tile}
+  \begin{figure}
+    \resizebox{\columnwidth}{!}{\includegraphics{TilePro64_schema.pdf}}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Dominio Applicativo}
+   Computazioni con calcolo di grana fine:
+    \begin{description}
+    \item [Data Stream Processing] uno o pi\`u flussi contigui, rapidi e varianti nel tempo di dati; l'elaborazione sui dati in ingresso \`e fatta on-line:\hfill
+      \begin{itemize}
+      \item Monitoraggio e sicurezza di reti informatiche;
+      \item Applicazioni finanziarie;
+      \item Monitoraggio di sensori e Gestione delle emergenze;
+      \item Altri \ldots
+      \end{itemize}
+    \item [Data Parallel] forma di parallelismo applicabile sia a computazioni su stream che su dato singolo; \`e caratterizzata dal partizionamento dei dati.
+      \begin{itemize}
+      \item anche su dato singolo, in particolare per la realizzazione delle comunicazioni collettive e nelle forme \emph{Stencil}
+      \end{itemize}
+    \end{description}
+\end{frame}
+
+\note{A scopo esemplificativo si considera una parte di una applicazione su stream riguardante due moduli collegati in pipeline: si assume che il tempo di calcolo del primo modulo sia opportunamente dimensionato come il tempo di interarrivo dello stream. Se il tempo di calcolo \`e superiore di diversi ordini di grandezza alla latenza di comunicazione allora l'ottimizzazione della comunicazione (e.g. riduzione di qualche centinaio di cicli di clock della comunicazione) non consegue alcun vantaggio sul tempo di servizio effetivo del modulo: se \`e possibile la sovrapposizione del calcolo ingatti la latenza di comunicazione \`e completamente masherata dal tempo di calcolo, altrimenti la latenza di comunicazione si va a sommare al tempo di calcolo, risultando trascurabile. L'ottimizzazione delle prestazioni \`e invece apprezzabile quando la latenza di queste \`e dello stesso ordine di grandezza del tempo di calcolo.}
+
+\begin{frame}
+  \frametitle{Sulla grana del calcolo (1)}
+  \begin{figure}
+%    \resizebox{\columnwidth}{!}{\includegraphics{servicetime_eg_coarse-grain.pdf}}
+    \includegraphics[height=3.0in]{servicetime_eg_coarse-grain.pdf}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sulla grana del calcolo (2)}
+  \note{Talk no more than 1 minute.} 
+  \begin{figure}
+%    \resizebox{\pageheigth}{!}{\includegraphics{servicetime_eg_fine-grain.pdf}}
+    \includegraphics[height=3.0in]{servicetime_eg_fine-grain.pdf}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Forme di comunicazione}
+  \begin{columns}
+    \column{.5\columnwidth}
+    Canale simmetrico
+    \column{.5\columnwidth}
+    Canale asimmetrico in ingresso
+  \end{columns}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\includegraphics{abstract_sym.pdf}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\includegraphics{abstract_asym.pdf}}
+  \end{columns}
+  \begin{itemize}
+    \item Tipo 'riferimento'
+    \item Grado asincronia unitario
+    \item Semantica Bloccante
+    \item Protocollo Rdy-Ack
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implementazioni del canale simmetrico}
+  \begin{description}
+  \item [uso della Memoria Condivisa] \hfill
+    \begin{itemize}
+    \item \verb+ch_sym_sm_rdyack_no+ gestione predefinita della coerenza della cache;
+    \item \verb+ch_sym_sm_rdyack+ configurazione della coerenza della cache che massimizza la localit\`a delle informazioni del supporto nei core consumatori;
+    \item \verb+ch_sym_sm_nullack+ utilizzo di un diverso protocollo di comunicazione che garantisce la correttezza senza l'uso di istruzioni di barriera di memoria
+    \end{itemize}
+  \item [uso della UDN] \hfill
+    \begin{itemize}
+    \item \verb+ch_sym_udn+ corrispondenza biunivoca tra i flussi firmware e i canali a livello processi
+    \end{itemize}
+  \end{description}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implementazioni del canale simmetrico}
+  \begin{description}
+  \item [uso della Memoria Condivisa] \hfill
+    \begin{itemize}
+    \item \verb+ch_asymin_sm_all+ 
+    \item \verb+ch_asymin_sm+ 
+    \end{itemize}
+  \item [uso della UDN] \hfill
+    \begin{itemize}
+    \item \verb+ch_asymin_udn+ 
+    \end{itemize}
+  \end{description}
+\end{frame}
+
+
+\section{Esperimenti}
+
+\subsection{Misura della Latenza di comunicazione}
+
+\begin{frame}
+  \frametitle{Misura della latenza di comunicazione}
+  \begin{itemize}
+  \item La latenza di comunicazione \`e misurata per mezzo di una applicazione ``ping-pong'':
+    \begin{itemize}
+    \item composta da due processi collegati da due canali,
+    \item viene svolto lo scambio di $m$ messaggi tra i due processi;
+    \end{itemize}
+  \item La latenza di comunicazione \`e stimata con $\Lcom = \Tc / (2 \cdot m)$.
+  \end{itemize}
+  \begin{figure}
+    \resizebox{\columnwidth}{!}{\includegraphics{schema_metering.pdf}}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Misura della latenza del canale simmetrico}
+  \begin{figure}
+    \resizebox{\columnwidth}{!}{\input{2_5_sym_all_color.tex}}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Misura della latenza del canale asimmetrico}
+  \begin{figure}
+    \resizebox{\columnwidth}{!}{\input{2_5_asymin_all_color.tex}}
+  \end{figure}
+\end{frame}
+
+\subsection{Benchmark}
+
+\begin{frame}
+  \frametitle{Benchmark: prodotto matrice-vettore su stream}
+  \[ \mathbf{A} = (a_{ij})_{i=1,\ldots,\mathrm{M}, j=1,\ldots,\mathrm{M}} \in \mathbb{Z}^{\mathrm{MxM}} \]
+  \[ \mathbf{b} = (b_1,\ldots,b_\mathrm{M}) \in \mathbb{Z}^{\mathrm{M}} \]
+  \[ \mathbf{c} = (c_1,\ldots,c_\mathrm{M}) = \mathbf{A} \cdot \mathbf{b} \in \mathbb{Z}^{\mathrm{M}} \]
+  \[ \forall \; i \in \{1,\ldots,\mathrm{M}\} \; : \; c_i = \mathbf{a}_i \cdot \mathbf{b} = \sum_{j=1}^{\mathrm{M}} a_{ij} \cdot b_j  \]
+  
+  \begin{figure}
+    \includegraphics[scale=.5]{grafo_sigma_compatto.pdf}
+  \end{figure}
+\end{frame}
+
+
+\note{Si basa sul partizionamento dei dati in ingresso e sulla replicazione della funzione di calcolo nelle unit\`a worker.}
+
+\begin{frame}
+  \frametitle{Benchmark: soluzione parallela}
+  \begin{columns}[c]
+    \column{.5\textwidth}
+    \begin{itemize}
+\item Data Parallel Map
+\item Multicast strutturata ad albero distribuito nei worker
+\end{itemize}
+    \column{.5\textwidth} 
+  \begin{figure}
+    \resizebox{.90\columnwidth}{!}{\includegraphics{grafo_sigma_vert.pdf}}
+  \end{figure}  
+
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (1)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec
+  \item Dimensione delle matrici 56x56
+  \item Tempo di servizio migliore UDN ... Tempo di servizio migliore SM ...
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_4000_56_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_56_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (2)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec %23.133 \musec
+  \item Dimensione delle matrici 168x168
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_20000_168_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_168_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (3)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec %57.831 \musec
+  \item Dimensione delle matrici 280x280
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_50000_280_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_280_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio Multicast}
+  \begin{columns}
+    \column{.5\columnwidth}
+    Dimensione delle matrici 56x56
+    \column{.5\columnwidth}
+    Dimensione delle matrici 280x280
+  \end{columns}
+  \vspace{5mm}
+  \begin{columns}[c]
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_56_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_280_slide.tex}}
+  \end{columns}  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di calcolo di un singolo prodotto scalare}
+  \begin{columns}[c]
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_00_500_4000_all_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_11_500_4000_all_slide.tex}}
+  \end{columns} 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di calcolo di un singolo prodotto scalare}
+  \begin{columns}[c]
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_00_500_4000_all_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_11_500_4000_all_slide.tex}}
+  \end{columns} 
+\end{frame}
+
+\end{document}
+

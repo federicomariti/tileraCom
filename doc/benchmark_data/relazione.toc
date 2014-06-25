@@ -1,0 +1,2 @@
+\contentsline {subsection}{\numberline {0.1}Confronto scalabilit\`a delle due implementazioni}{7}
+\contentsline {subsection}{\numberline {0.2}Row calculation time}{8}

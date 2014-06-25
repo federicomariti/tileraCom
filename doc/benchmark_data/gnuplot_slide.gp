@@ -1,0 +1,9 @@
+offset = $0
+print "[INFO] [gnuplot_slide] offset = $0"
+
+blue = "#3366cc"
+green = "#33cc33"
+
+set grid
+set linetype 1+offset lw 5 ps 2 lc rgb blue
+set linetype 2+offset lw 5 ps 2 lc rgb green

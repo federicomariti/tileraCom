@@ -1,0 +1,102 @@
+\documentclass[a4paper]{article}
+\usepackage[italian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[lighttt]{lmodern}
+
+
+\begin{document}
+
+SLIDE 1: Contesto del lavoro \\
+SLIDE 2: Obiettivi del lavoro \\
+SLIDE 3: Esempi di macchine CMP \\
+SLIDE 4: Esempi di forme di comunicazione - computazioni data stream processing \\
+SLIDE 5: Reti di interconnessione del Tilera TilePro64 \\
+SLIDE 6: I due approcci realizzativi del supporto alle comunicazioni \\
+SLIDE 7: Misura della Latenza di comunicazione \\ 
+SLIDE 8: Misura latenza canale simmetrico\\
+SLIDE 9: Misura latenza canale asimmetrio\\
+SLIDE 10: Benchmark: prodotto matrice-vettore\\
+SLIDE 11: Confronto: tempo di servizio sottosistema parallelo\\
+SLIDE 12: Confronto: tempo di servizio multicast\\
+SLIDE 13: Confronto: tempo di calcolo di un singolo prodotto scalare\\
+
+
+SLIDE 0:\\
+Il tirocinio si \`e svolto presso il laboratorio di architetture parallele del dipartimento di informatica. 
+
+SLIDE 1: Contesto del lavoro\\
+Nell'ambito di architetture chip multiProcessor \`e comune l'utilizzo della memoria condivisa per la realizzazione del supporto a programmi paralleli.
+Meccanismi base per esprimere programmi paralleli riguardano la cooperazione e la comunicazione di processi, ad esempio:
+\begin{itemize}
+\item semafori,
+\item locks,
+\item canali di comunicazione, 
+\item etc.
+\end{itemize}
+Sopra questi \`e quindi possibile costruire un supporto per esprimere forme di calcolo parallelo.
+L'utilizzo della memoria condivisa pone problemi significativi quando si utilizzano macchine CMP altamente parallele. In particolare esistono alcune degradazioni, dovute alla memoria condivisa, che si fanno rilevanti con l'uso di pi\`u processi: 
+\begin{itemize}
+\item l'uso mutuamente esclusivo delle strutture dati utilizzate nell'implementazione del supporto,
+\item il garantire la coerenza del sottosistema di cache,
+\item l'aumento del tempo medio di risposta alla memoria in seguito all'aumentare delle richieste. 
+\end{itemize}
+Tali problemi influiscono nelle prestazioni del supporto come latenza aggiuntiva da pagare. La degradazione dovuta alla memoria aumenta con il grado di parallelismo, ovvero con il numero di processi eseguiti contemporaneamente.
+
+SLIDE 2: Obiettivi del lavoro\\
+Il lavoro svolto riguarda la realizzazione di un supporto alle comunicazioni tra processi che minimizzi le degradazioni dovute all'uso della memoria condivisa. Supporti efficienti sono necessari in computazioni di grana fine, ovvero dove il calcolo su un dato in ingresso \`e mediamente breve ed \`e necessario eseguire calcoli su nuovi dati con frequenza elevata; computazioni Data Stream Precessing ne sono un esempio. 
+Viene considerato un nuovo approccio all'implementazione del supporto alle comunicazioni: si fa uso della rete di interconnessione dei core messa a disposizione dell'architettura. Vengono realizzate anche implementazioni che usano la memoria condivisa sempre con l'obiettivo di minimizzare le degradazioni.
+-->(Le caratteristiche dei canali di comunicazione vengono spiegate nella SLIDE 4)<--
+
+SLIDE 3: Esempi di macchine CMP\\ 
+Recentemente macchine CMP con elevato parallelismo realizzano reti di interconnessione tra core multiple, con caratteristiche di scalabilit\`a e dedicate a scopi specifici. Si prendono ad esempio due macchine, comunemente classificate come network processor, che verificano questa caratteristica e che rendono disponibile all'utente una di queste reti per la comunicazione inter-core. Il Tilera \`e costituito da 64 core collegati da mesh bidimensionali, il NetLogic \`e costituito da 8 o 16 core collegate da anelli bidirezionali.
+
+SLIDE 4: Esempi di forme di comunicazione\\
+Il supporto alle forme di conmunicazione realizzato \`e un insieme minimo delle forme di comunicazione necessarie per realizzare i comuni paradigmi paralleli. Prendiamo come esmpio due comuni paradigmi di parallelizzazione per computazioni su stream: il farm sulla destra \`e caratterizzato dal replicamento della funzione di calcolo sequenziale su $n$ processi worker, la politica di distribuzione degli elementi dello stream \`e decisa da un processo worker, i risultati sono collezionati da un apposito processo. Anche la forma Data Parallel Map, sulla sinistra, \`e composta da un certo numero di worker, in questo caso per\`o il parallelismo \`e esplicitato partizionando un elemento dello stream, distribuendo le partizioni dell'elemento ai processi worker, dividendo cos\`i il calcolo di un singolo elemento dello stream tra tutti i worker. Anche nella Map i risultati, in questo caso parziali, vengono raccolti da un processo. Nell'esempio proposto la distribuzione di ogni elemento dello stream \`e implementata con un albero binario mappato sull'insieme dei worker. Tale soluzione \`e una alternativa pi\`u efficente alla distribuzion e lineare. Al fine di poter realizzare queste due forme parallele risultano indispensabili due forme di comunicazione: una simmetrica che consenta la comunicazione di due processi, per realizzare l'emissione degli elementi nella Farm e la distribuzione delle partizione nella map. E una asimmetrica in ingresso, che colleghi molti processi mittenti ad un singolo, ci\`o \`e utile per realizzare le forme di collezionamento di risultati in entrambe le forme.
+
+SLIDE 5: Reti di interconnessione del Tilera\\
+Il supporto realizzato \`e specifico per la macchina Tilera. Questa \`e costituita da 6 diverse reti di interconnessione che collegano i core tra loro e ai 4 controllori di memoria. Tra le piu` significative: la MDN trasporta le richieste di accesso alla memoria e le corrispondenti risposte, la CDN \`e responsabile dei messaggi di invalidazione per il meccanismo di coerenza della cache, sulla TDN vengono trasportate le richieste di accesso alla memoria tra core, la UDN \`e resa disponibile all'utente per comunicazioni core-to-core. La rete UDN \`e caratterizzata da 4 flussi implementati da corrispondenti code FIFO nella CPU dei core. Per la realizzazione del supporto si \`e usato il linguaggio C e le librerie messe a disposizione da Tilera per l'accesso alla rete.
+
+SLIDE 6: I due approcci realizzativi\\
+Per descrivere la differenza dei due diversi approcci sperimentati prendiamo in esame una comunicazione simmetrica tra due processi eseguiti in due diversi core. Ogni core \`e costituito da una CPU collegata alle reti di interconnessione per mezzo di una unit\`a di switch. L'implementazione con la UDN consiste nello scambio di messaggi firmware tra i due processi attraverso la UDN stessa. \`E tramite la comunicazione firmware che viene implementata sia la sincronizzazione che il trasferimento del messaggio. L'altro approccio prevede una struttura dati condivisa in memoria, detta descrittore di canale, contenente tutte le informazioni per la sincronizzazione dei processi e la trasmissione dei messaggi. Tale struttura viene copiata nei livelli di cache dei due core, l'implementazione del supporto \`e costituita dalla lettura e scrittura dei campi del descrittore di canale.
+-->(il protocollo \`e Rdy-Ack)<--
+-->(i messaggi hanno tipo riferimento)<--
+
+
+SLIDE 7: Misura della Latenza di comunicazione\\
+Si sono realizzate versioni con i due approcci. Una prima misura delle
+prestazioni dei canali \`e la stima della latenza di
+comunicazione. Ci\`o \`e stato fatto con una tipica applicazione
+caratterizzata da due processi comunicanti per mezzo di due canali con
+direzione opposta e con comportamento ``ping-pong''. Viene misurato il
+tempo di completamento per un certo numero $m$ di scambi, quindi la
+latenza di comunicazione \`e stimata come la met\`a del tempo medio di
+scambio.
+
+SLIDE 8: Misura latenza canale simmetrico\\ 
+La specifica macchina permette la configurazione di molti aspetti
+riguardanti la memoria condivisa, tra cui la configurazione della
+coerenza della cache. L'implementazione del supporto che usa la
+configurazione predefinita \`e caratterizzata da trasferimenti di
+blocchi di cache durante l'esecuzione del supporto. Ci\`o pu\`o essere
+evitato con una adeguata configurazione della cache. Entrambe le
+implementazione fanno uso di una istruzione di barriera di memoria per
+verificare la correttezza della comunicazione. La terza
+implementazione usa un protocollo differente che evita l'utilizzo di
+questa istruzione.
+
+SLIDE 9: Misura latenza canale asimmetrio\\
+La misura dei canali asimmetrici \`e realizzata sempre come ping-pong,
+utilizzando i canali asimmetrici per le comunicazioni
+simmetriche. Sono stati analizzate due configurazione della
+implementazione su SM: una che usa un singolo mittente, l'altra che
+dispone del numero massimo di mittenti di cui solo uno \`e attivo
+nella misurazione. Questo perch\`e nella nostra implementazione il
+destinatario esegue un controllo ciclico sui mittenti nell'attesa di
+messaggi.
+
+SLIDE 10: Benchmark: prodotto matrice-vettore\\
+SLIDE 11: Confronto: tempo di servizio sottosistema parallelo\\
+SLIDE 12: Confronto: tempo di servizio multicast\\
+SLIDE 13: Confronto: tempo di calcolo di un singolo prodotto scalare\\
+
+\end{document}

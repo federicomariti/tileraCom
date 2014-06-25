@@ -1,0 +1,70 @@
+\begin{figure}[p]
+  \caption[Tempi di completamento dello stream]{Grafici del tempo di completamento dello stream al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Utilizzo del supporto su UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_00_500_selected_56.tex}}
+      \caption{Dimensione della matrice 56x56}
+      \label{fig:completeTime_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_00_500_selected_168.tex}}
+      \caption{Dimensione della matrice 168x168}
+      \label{fig:completeTime_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_00_500_selected_280.tex}}
+      \caption{Dimensione della matrice 280x280}
+      \label{fig:completeTime_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Utilizzo del supporto sulla SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_11_500_selected_56.tex}}
+      \caption{Dimensione della matrice 56x56}
+      \label{fig:completeTime_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_11_500_selected_168.tex}}
+      \caption{Dimensione della matrice 168x168}
+      \label{fig:completeTime_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-Tc_nogatherInt_11_500_selected_280.tex}}
+      \caption{Dimensione della matrice 280x280}
+      \label{fig:completeTime_SM_size280}
+    \end{subfigure}
+    \label{fig:allcompleteTime_SM}
+  \end{subfigure}
+  \label{fig:completeTime}
+\end{figure}

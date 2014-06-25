@@ -1,0 +1,115 @@
+\section{Analisi delle prestazioni}
+Di seguito viene descritta una breve analisi delle prestazioni attese dal benchmark. Dato che la frequenza dello stream \`e arbitraria, la stima del tempo di servizio del \emph{map} permette di avere un primo dimensionamento del tempo di interarrivo, per diverse dimensioni dei dati, in modo tale da poter effettuare le prime misure dell'applicazione. Nella sezione successiva sono quindi proposte le misure del tempo di completamento dello stream e del tempo di servizio di \subsystem.
+
+La macchina \tile\ non dispone di processori di comunicazione, ne segue che le latenze di comunicazione dei canali sono pagate completamente nel tempo di servizio dei processi worker del sottosistema \subsystem. Si caratterizza perci\`o il tempo di servizio \emph{ideale} ed \emph{effettivo} del sottosistema \emph{map} come segue:
+%%\begin{flalign*}
+\begin{fleqn}[0pt]
+\[ T_{\Sigma1\_\textrm{id}}^{(n)} \; = \; T_S^{(n)} \; = \; T_{\textrm{multicast}} + \frac{T_{\textrm{cacl}}}{n} + T_{\textrm{gather}} \; = \; 2 \cdot T_{\textrm{sym\_send}} + \frac{T_{\textrm{cacl}}}{n} + T_{\textrm{asymin\_send}} \; = \; \Delta + \frac{T_{\textrm{cacl}}}{n} \]
+\[ T_{\Sigma1}^{(n)} \; = \max(\{ T_A , \; T_S^{(n)} \}) \]
+\end{fleqn}
+\\
+Dove \Tcalc\ \`e il tempo medio impiegato per il calcolo della computazione sequenziale, ovvero il calcolo di una moltiplicazione matrice per vettore, e $n$ \`e il grado di parallelismo dell'applicazione, inteso come il numero dei processi worker. Il rapporto tra \Tcalc\ e $n$ esprime il tempo di servizio \emph{ideale} di un processo worker scollegato dallo stream. Si \`e indicato con $\Delta$ la somma dei tempi spesi nelle comunicazioni da parte di un worker, tale latenza non \`e sovrapposta al tempo di calcolo nei processi worker. 
+
+Se \`e noto il valore del \Tcalc\ e di $\Delta$ allora per un generico tempo di interarrivo si ricava il grado di parallelismo ottimo, ovvero il minor grado di parallelismo che massimizza l'efficienza fornendo un fattore di utilizzazione unitario del sottosistema \subsystem:
+\begin{fleqn}[0pt]
+\[ n_{\textrm{opt}} \; = \; \min(\{ n \in \mathbb{N} \; | \; T_S^{(n)} \le T_A \}) \; = \; \Bigg\lceil \frac{ T_{\textrm{calc}}}{T_A - \Delta} \Bigg\rceil  \]
+%% \[ T_A \ge \Delta \quad \Rightarrow \quad (\exists \; n \in \mathbb{N} \; | \; T_S^{(ln)} \le T_A ) \]
+\end{fleqn}
+Dato che il tempo di interarrivo non \`e definito a priori ma \`e arbitrario, da tale formula \`e possibile ricavare il tempo di interarrivo uguale al tempo di servizio del \emph{map} con il massimo grado di parallelismo esplicitabile dall'architettura.
+
+\begin{table}[!t]
+  \centering
+  \begin{tabular}{|l|r|r|}
+    \hline
+    \emph{Matrix Size} & $T_{\textrm{calc}}$ ($\mu s$) & $T_{\textrm{calc}}$ (\emph{$\tau$}) \\
+    \hline
+    %% f = 864.583 Mhz 
+    %% t = 1/864.583 microsec = 1.156626 nanosec    
+    56x56 & 85.997340 & 74351.900000 \\
+    168x128 & 848.096504 & 733250.424000 \\
+    280x280 & 2360.060404 & 2040469.784000 \\
+    %% 56x56 & 92.933357 & 80348.667200  \\ %1361,8418169491525
+    %% 168x168 & 837.657488 & 724225.020400 \\ %12275,000338983051
+    %% 280x280 & 2344.539131 & 2027050.344400 \\ %34356,785498305085
+    \hline
+%% avg sdev max min 74361.094000 -nan 8589684.602688 83055 74324
+%% avg sdev max min 733278.128000 -nan 8558625.543131 737057 733085
+%% avg sdev max min 2040435.474000 -nan 8344230.227289 2051981 2039738
+  \end{tabular}
+  \caption{Tempi di calcolo della computazione sequenziale al variare della dimensione della matrice}
+  \label{tab:Tcalc}
+\end{table}
+
+\begin{table}[!b]
+  \begin{subtable}[b]{.5\textwidth}
+    \begin{tabular}{|l|r|}
+      \hline
+      \emph{Canale} & \emph{Lcom ($\tau$)}\\
+      \hline
+      \verb+ch_sym_udn+ & 55.722760 \\
+      \verb+ch_sym_sm_rdyack+ & 155.377520 \\
+      \verb+ch_asymin_udn+ & 69.509710 \\
+      \verb+ch_asymin_sm+ & 170.285120 \\
+      \verb+ch_asymin_sm_all+ & 414.157690  \\
+      \hline
+    \end{tabular}
+    %% \caption{Misurazioni effettuate con l'applicazione ``ping-pong'', $10^4$ scambi e i procEssi allocati a distanza di 14 hops nella mesh.}
+  \end{subtable}
+  \hspace{4ex}
+  \begin{subtable}[b]{.5\textwidth}
+    \begin{tabular}{|l|r|}
+      \hline
+      \emph{Canali usati} & $T_\Delta (\tau)$ \\
+      \hline
+      UDN only & 180.95523 \\
+      SM only & 481.04016 \\
+      SM only with all & 724.91273 \\
+      \hline
+    \end{tabular}
+    %% \caption{Valori del Delta che costituisce il tempo di servizio ideale del sottosistema dei workers}
+  \end{subtable}
+  \caption{Misure delle latenze dei canali di comunicazione rilevate con l'applicazione ``ping-pong'', nella quale i due processi sono eseguiti in due tile con distanza massima nella mesh}
+  \label{tab:ch_and_delta}
+\end{table}
+
+Si pone quindi il problema di stimare il tempo di calcolo e il valore di $\Delta$. 
+\begin{asparaitem}
+\item Il $T_{\textrm{calc}}$ viene stimato misurando il tempo medio impiegato per eseguire una moltiplicazione matrice per vettore in un singolo tile della macchina. I risultati di tale misura per dimensioni diverse della matrice sono mostrate in Tabella \ref{tab:Tcalc}.
+\item Il valore di $\Delta$ pu\`o essere fornito in prima approssimazione dalle misure delle latenze di comunicazione effettuate con l'applicazione ``ping-pong'' per le due implementazioni dei canali. I risultati di tale misura sono riassunti nella Tabella \ref{tab:ch_and_delta}.
+\end{asparaitem}
+Si osserva che le misure di tali parametri sono approssimazioni ottimistiche, \`e infatti prevedibile che durante l'esecuzione dell'applicazione \emph{map} sia il tempo di calcolo dei worker che le latenze di comunicazione siano superiori ai valori stimati per mezzo delle applicazioni di misurazione, le quali usano un numero minimale di processi. Per la misura del \Tcalc\ viene eseguito un unico processo, per la misura delle latenze di comunicazione vengono eseguiti due processi che si scambiano messaggi usando il supporto fornito, in entrambi i casi le misure sono prese con un numero di conflitti minimo sia nelle reti di interconnessione sia alle memorie cache e ai controllori della memoria principale. Durante l'esecuzione della \emph{map} i processi in gioco possono essere molti fino al massimo numero di processori utilizzabili nella macchina, ne segue un aumento dei conflitti alle reti e alle memorie rispetto a quelli che si verificano nei programmi di misurazione e ci\`o introduce overheads sia nel tempo di calcolo effettivo dei workers che nelle latenze di comunicazione.
+
+Si calcola il tempo di servizio ideale con il grado di parallelismo massimo, $N = 59$, $\inTs = \frac{\inTcalc}{n} + \Delta$.
+
+\begin{verbatim}
+74352/59 + 181 = 1441  -> 4000
+74352/59 + 481 = 1741  -> 7000
+74352/59 + 725 = 1985
+
+733250/59 + 181  = 12428 + 181 = 12609  -> 20000
+                   12428 + 481 = 12909  -> 20000
+
+2040470/59 + 181 = 34584 + 181 = 34765  -> 50000
+\end{verbatim}
+
+%% n = Tcalc / (Ta - D)
+%% Ts = Tcalc/n + D
+%% Tcalc/n + D = Ta
+
+%% \begin{table}[!h]
+%%   \begin{tabular}{|l|r|r|}
+%%     \hline
+%%     %% $T_A$ & $n_{\textrm{opt}_{\textrm{UDN}}}$ & $n_{\textrm{opt}_{\textrm{SM}}}$\\
+%%     $T_A$ & $n_{\textrm{opt\_UDN}}$ & $n_{\textrm{opt\_SM}}$\\
+%%     \hline
+%%     181 & inifinito & non esiste\\
+%%     362 & 444 & non esiste \\
+%%     725 & 148 & 329 \\
+%%     1450 & 63 & 82 \\
+%%     2000 & 44 & 52 \\
+%%     \hline
+%%   \end{tabular}
+%%   \caption{Valori di grado di parallelismo ottimo per la matrice di dimensione 56x56}
+%%   \label{tab:nopt}
+%% \end{table}
+

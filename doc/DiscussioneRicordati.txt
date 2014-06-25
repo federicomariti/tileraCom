@@ -1,0 +1,14 @@
+SLIDE 1: Contesto del lavoro \\
+* fai esempi di meccanismi base per esprimere programmi paralleli
+SLIDE 2: Obiettivi del lavoro \\
+SLIDE 3: Esempi di macchine CMP \\
+SLIDE 4: Esempi di forme di comunicazione - computazioni data stream processing \\
+SLIDE 5: Reti di interconnessione del Tilera TilePro64 \\
+SLIDE 6: I due approcci realizzativi del supporto alle comunicazioni \\
+SLIDE 7: Misura della Latenza di comunicazione \\ 
+SLIDE 8: Misura latenza canale simmetrico\\
+SLIDE 9: Misura latenza canale asimmetrio\\
+SLIDE 10: Benchmark: prodotto matrice-vettore\\
+SLIDE 11: Confronto: tempo di servizio sottosistema parallelo\\
+SLIDE 12: Confronto: tempo di servizio multicast\\
+SLIDE 13: Confronto: tempo di calcolo di un singolo prodotto scalare\\

@@ -1,0 +1,50 @@
+Tipoligie dei FILE DI DATI presenti nelal directory corrente:
+
+(1) Files prodotti dalla misurazione con niter == 1
+    Fromato del nome dei file:
+    * type_log10(nscambi)_nhops_impl.dat
+    Formato delle entrate
+    * avg sdev max
+
+(2) Files prodotti da una suite di misurazioni con niter >= 1
+    Formato del nome dei file:
+    * type_impl.dat
+    Utilizzato con suite di misurazioni, niter >= 1
+    Formato delle entrate
+    * white_cpu black_cpu nhops niter nscambi avg sdev max
+
+ALTRI FILE:
+* (1).avg
+  Contiene le statistiche del file (1), ovvero la media, la sdev e il
+  max di ogni colonne di (1).
+  Formato delle entrate:
+  * avg sdev max
+
+FILE ESEGUIBILI:
+* compact.c, compact
+  Programma che calcola la media dei valori nelle colonne dei file
+  dati di tipo (1).
+
+* printAll.c, printAll
+  Programma che raggruppa i valori dei file (1).avg in un unico file.
+  Formato del nome del file prodotto:
+  * (3a) type_log10(nscambi)_{sym,asymin}_all.dat.avg
+  * (3b) type_log10(nscambi)_{sym,asymin}_all_stat.dat.avg
+
+* plot.gp
+  Script gnuplot che prende in ingresso un file (3a) e crea il plot a
+  barre delle misure.
+  File prodotti:
+  * (4a) type_log10(nscambi)_{sym,asymin}_all.tex
+  * (4b) type_log10(nscambi)_{sym,asymin}_all.pdf
+
+* plot.sh
+  Interfaccia a plot.gp, prende in ingresso i valori di type e
+  log10(nscambi) ed invoca correttamente plot.gp.
+  File prodotti:
+  * (5a) type_log10(nscambi)_{sym,asymin}_all_main.tex [se non esisteva]
+  * (5b) type_log10(nscambi)_{sym,asymin}_all_main.pdf
+
+
+* printResult.sh
+  Esegue tutti i precedenti.

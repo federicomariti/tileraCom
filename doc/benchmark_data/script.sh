@@ -1,0 +1,301 @@
+#!/bin/bash
+
+if [ $# -ne 1 ] ; then
+    echo "Error: missing integer switch argument"
+    echo "       Tc-s Tc T-s T T-UDN-SM comp-Tc-s rowCalcT Tmult Tmult-nb Tmult-nb-UDN-SM"
+#    echo "       Tc_scalability Tc_scalability_selected Tc_selected T_selected T_scalability_selected multicastTime_selected Tc_scalability_varM Tc_scalability_confronto calcTimeRow"
+fi
+
+DATASIZE="56 168 280"
+STREAMLENGTH="500"
+TA="181 362 725 1450 2000 3000 4000"
+IMPL="00 11"
+
+# tempi di calcolo del programma sequenziale 
+# -> sono stati ottenuti (media) da diverse (>20) esecuzioni del programma sequenziale
+# -> sono usati per disegnare il grafico del tempo di servizio ideale
+T_CALC=([56]="82934.926829", [168]="735319.292683", [280]="2040430.560976")
+T_CALC_MICROSEC=([56]="95.924692678518994", [168]="850.48941221876782", [280]="2360.0150380194277")
+
+# 1     2         3                   4                    5                   
+# "Int" "udn udn" "stream length 500" "$T_A$ 4000 $\\tau$" "Matrix Size 56x56" 
+# 6          
+# "$T_A$ 4.627 $\\mu\\mathrm{sec}$" 
+
+case $1 in
+    (1)
+	for datasize in $DATASIZE ; do 
+	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 \* ${datasize} "" 4 \
+    	    	    "Scalabilita dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot1_nogatherInt_${impl}_500_all_${datasize} \
+	    	    1
+	    done
+	done
+	;;
+
+
+    (Tc-s | Tc-scalability | completeTimeScalability)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "" 4 \
+    	    	    "Scalabilita dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-Tc-s_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    scalability
+    	    done
+	done
+	;;
+    (Tc | completeTime)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "" 4 \
+    	    	    "Tempo di completamento dello stream dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-Tc_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    complTime_log
+	    done
+	done
+	;;
+    (Tc-millis)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "" 6 \
+    	    	    "Tempo di completamento dello stream dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-Tc_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    complTime_log
+	    done
+	done
+	;;
+    (T-s | T-scalability | ServiceTimeScalability)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 4 \
+    		    "Scalabilita del tempo di servizio dell implementazione UDN con Ta=${ta} al variare della dimensione dei dati" \
+    		    plot-T-s_nogatherInt_${impl}_500_selected_${datasize} \
+		    scalability
+	    done
+	done
+	;;
+    (T | serviceTime)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 4 \
+    	    	    "Tempo di servizio della map dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-T_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    serviceTime_log
+
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 6 \
+    	    	    "Tempo di servizio della map dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-T-millis_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    serviceTime-millis_log
+	    done
+	done
+	;;
+    (T-UDN-SM)
+	TA=([56]="4000" [168]="20000" [280]="50000" )
+	#TA=([56]="4000" [168]="4000" [280]="4000" )
+	for datasize in $DATASIZE ; do
+	    ./plot.sh nogather Int '{00,11}' 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 2 \
+    	    	"Confronto dei tempi di servizio delle implementazioni UDN e SM con un tempo di interarrivo che non e gestibile" \
+    	    	plot-T-UDN-SM_nogatherInt_selected_500_selected_${datasize} \
+    	    	"serviceTime-millis_log_withIdeal${T_CALC_MICROSEC[${datasize}]}"
+	done
+	;;
+    (T-UDN-SM_slide)
+	TA=([56]="4000" [168]="20000" [280]="50000" )
+	#TA=([56]="4000" [168]="4000" [280]="4000" )
+	for datasize in $DATASIZE ; do
+	    ./plot.sh nogather Int '{00,11}' 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 7 \
+    	    	"Confronto dei tempi di servizio delle implementazioni UDN e SM con un tempo di interarrivo che non e gestibile" \
+    	    	plot-T-UDN-SM_nogatherInt_selected_500_selected_${datasize} \
+    	    	"serviceTime-millis_log_withIdeal${T_CALC_MICROSEC[${datasize}]}"
+	done
+	;;
+    (comp-T-s)
+	TA=([56]="4000" [168]="20000" [280]="50000" )
+	# le implementazioni da confrontare
+	impls="{00,11}"
+	for datasize in $DATASIZE ; do
+    	    ./plot.sh nogather Int ${impls} 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 2 \
+    		"Confronto della scalabilita nelle diverse implementazioni, Ta=${ta}, M=${datasize}" \
+    		plot-comp-T-s_nogatherInt_selected_500_${TA[${datasize}]}_${datasize} \
+		scalability
+	done
+	;;
+    (comp-T-s_slide)
+	TA=([56]="4000" [168]="20000" [280]="50000" )
+	# le implementazioni da confrontare
+	impls="{00,11}"
+	for datasize in $DATASIZE ; do
+    	    ./plot.sh nogather Int ${impls} 500 ${TA[${datasize}]} ${datasize} "_servicetime.dat" 7 \
+    		"Confronto della scalabilita nelle diverse implementazioni, Ta=${ta}, M=${datasize}" \
+    		plot-comp-T-s_nogatherInt_selected_500_${TA[${datasize}]}_${datasize} \
+		scalability
+	done
+	;;
+    (prova)
+	TA=([56]="4000" [168]="20000" [280]="50000" )
+	for datasize in $DATASIZE ; do
+	    ./plot.sh nogather Int '00' 500 ${TA[${datasize}]} ${datasize} "{_servicetime.dat,_servicetime_old.dat}" 2 \
+    	    	"Confronto dei tempi di servizio delle implementazioni UDN e SM con un tempo di interarrivo che non e gestibile" \
+    	    	plot-prova_nogatherInt_00_500_selected_${datasize} \
+    	    	"prova"
+	done
+	;;
+    (comp-Tc-s | compare-completeTime-scalability)
+	# tempo di interarrivo inferiore al tempo di servizio del Map
+	# di tutti i casi considerati
+	ta=4000
+	datasize=56
+	# le implementazioni da confrontare
+	impls="{00,11}"
+	for ta in $TA ; do 
+	    for datasize in $DATASIZE ; do
+    		./plot.sh nogather Int ${impls} 500 ${ta} ${datasize} "" 2 \
+    		    "Confronto della scalabilita nelle diverse implementazioni, Ta=${ta}, M=${datasize}" \
+    		    plot-comp-Tc-s_nogatherInt_all_500_${ta}_${datasize} \
+		    scalability
+	    done
+	done
+	;;
+    (rowCalcT | rowCalcTime)
+	# tempo di interarrivo inferiore al tempo di servizio del Map
+	# di tutti i casi considerati
+	ta=4000
+	sizes="{280,168,56}"
+    	./plot.sh nogather Int 00 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	    "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali UDN e dati Int" \
+    	    plot-rowCalcT_nogatherInt_00_500_${ta}_all \
+	    rowCalcTime
+    	./plot.sh nogather Int 11 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	    "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali SM e dati Int" \
+    	    plot-rowCalcT_nogatherInt_11_500_${ta}_all \
+	    rowCalcTime
+    	./plot.sh nogather Float 00 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	    "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali UDN e dati Float" \
+    	    plot-rowCalcT_nogatherFloat_00_500_${ta}_all \
+	    rowCalcTime
+    	./plot.sh nogather Float 11 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	    "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali SM e dati Float" \
+    	    plot-rowCalcT_nogatherFloat_11_500_${ta}_all \
+	    rowCalcTime
+	;;
+    (comp_rowCalcT)
+    	./plot.sh nogather Int "{00,11}" 500 4000 56 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherInt_all_500_4000_56 rowCalcTime
+
+    	./plot.sh nogather Int "{00,11}" 500 4000 168 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherInt_all_500_4000_168 rowCalcTime
+
+    	./plot.sh nogather Int "{00,11}" 500 4000 280 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherInt_all_500_4000_280 rowCalcTime
+
+	
+	./plot.sh nogather Float "{00,11}" 500 4000 56 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherFloat_all_500_4000_56 rowCalcTime
+
+    	./plot.sh nogather Float "{00,11}" 500 4000 168 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherFloat_all_500_4000_168 rowCalcTime
+
+    	./plot.sh nogather Float "{00,11}" 500 4000 280 "_calctimerow.dbg" 7 "" \
+    	    plot-comp-rowCalcT_nogatherFloat_all_500_4000_280 rowCalcTime
+
+	
+
+    	# ./plot.sh nogather Int 11 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	#     "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali SM e dati Int" \
+    	#     plot-rowCalcT_nogatherInt_11_500_${ta}_all \
+	#     rowCalcTime
+    	# ./plot.sh nogather Float 00 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	#     "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali UDN e dati Float" \
+    	#     plot-rowCalcT_nogatherFloat_00_500_${ta}_all \
+	#     rowCalcTime
+    	# ./plot.sh nogather Float 11 500 ${ta} ${sizes} "_calctimerow.dbg" 5 \
+    	#     "Tempi di calcolo di una singola Row * Col con Ta=${ta}, canali SM e dati Float" \
+    	#     plot-rowCalcT_nogatherFloat_11_500_${ta}_all \
+	#     rowCalcTime
+	;;
+    (Tmult)
+	echo TODO
+	;;
+    (Tmult-nb)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} ".dat.nb-multictime" 4 \
+    	    	    "Tempo di multicast dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot-Tmult-nb_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    multicastTime
+	    done
+	done
+	;;
+    (Tmult-nb-UDN-SM)
+	TA=([56]="20000" [168]="150000" [280]="250000")
+	for datasize in $DATASIZE ; do 	
+	    ./plot.sh nogather Int '{00,11}' 500 ${TA[${datasize}]} ${datasize} ".dat.nb-multictime" 2 \
+    	    	"Confronto tempi di servizio della multicast delle due implementazioni con tempo di interarrivo piu alto preso"\
+    	    	plot-Tmult-UDN-SM_nogatherInt_selected_500_selected_${datasize} \
+    	    	multicastTime
+
+	    ./plot.sh nogather Int '{00,11}' 500 ${TA[${datasize}]} ${datasize} ".dat.nb-multictime" 2 \
+    	    	"Confronto tempi di servizio della multicast delle due implementazioni con tempo di interarrivo piu alto preso"\
+    	    	plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_${datasize} \
+    	    	multicastTime-millis
+	done
+	;;
+
+################################################################################
+
+    (multicastTime_selected)
+	TA=(
+	    [56]="{20000,10000,7000,4000}" 
+	    [168]="{150000,80000,50000,35000,20000}"
+	    [280]="{250000,150000,100000,80000,50000}" )
+
+	for datasize in $DATASIZE ; do 
+    	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int ${impl} 500 ${TA[${datasize}]} ${datasize} "_multictime.dbg" 4 \
+    	    	    "Tempo di multicast dell implementazione UDN con M=${datasize} al variare del tempo di interarrivo" \
+    	    	    plot1mlt_nogatherInt_${impl}_500_selected_${datasize} \
+    	    	    multicastTime
+	    done
+	done
+	;;
+    (2 | scalability_varM | Tc_scalability_varM)
+	for ta in $TA ; do 
+	    for impl in $IMPL ; do 
+    		./plot.sh nogather Int $impl 500 ${ta} \* "" 5 \
+    		    "Scalabilita dell implementazione UDN con Ta=${ta} al variare della dimensione dei dati" \
+    		    plot2_nogatherInt_${impl}_500_${ta}_all \
+		    1
+	    done
+	done
+	;;
+esac

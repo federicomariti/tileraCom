@@ -1,0 +1,17 @@
+files = system("ls -f $0")
+numFiles = system("ls $0 | wc -l")
+columnIndex = "$1"
+
+print "[INFO] [plot_scalability.gp] first arg: $0; second arg: $1"
+
+#print "[INFO] [plot.gp] files:".files
+
+set for [i = 2:numFiles+1] linetype i linewidth 2 pointsize 1.25
+set key top left
+set xlabel "$$n$$ parallel degree"
+set ylabel "scalability"
+plot [1:60] [1:60] x title "ideal scalability", for [i in files] i using 1:6 with linespoints title column(columnIndex)
+
+# set terminal latex
+# set output "bla.tex"
+# plot [1:60] [1:60] x title "ideal scalability", for [i in files] i using 1:6 with linespoints title column(columnIndex)

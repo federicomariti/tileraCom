@@ -1,0 +1,32 @@
+\FloatBarrier
+\subsection{Row calculation time}
+
+\begin{figure}[h]
+  \caption{Rapporto tra i tempi di calcolo di un singolo prodotto scalare}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_00_500_4000_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=4000, canali UDN e dati Int}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_00_500_4000_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=4000, canali UDN e dati Float}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_11_500_4000_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=4000, canali SM e dati Int}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_11_500_4000_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=4000, canali SM e dati Float}
+  \end{subfigure}
+\end{figure}
+
+\FloatBarrier
+

@@ -1,0 +1,162 @@
+\documentclass[a4paper]{article}
+\usepackage{graphics, color, listings, verbatim, graphicx, multicol, paralist, placeins, caption, subcaption, multirow, array, amsfonts, amsmath, nccmath, hyperref, colortbl}
+\usepackage[T1]{fontenc}
+\usepackage[lighttt]{lmodern}
+\usepackage[italian]{babel}
+\usepackage[final]{pdfpages}
+\usepackage[table]{xcolor}
+\usepackage{chngcntr}
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
+\AtBeginDocument{\counterwithin{lstlisting}{section}}
+
+
+\usepackage{fancyhdr}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\pagestyle{fancy}
+
+\fancyhf{}
+
+\fancyfoot{}
+\fancyhead[LE,RO]{\rightmark}
+%% \fancyhead[LE,RO]{\slshape \rightmark}
+%%\fancyhead[LO,RE]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+
+\lstdefinestyle{data}{
+  basicstyle = {\ttfamily},
+  frame = single,
+  breaklines = true, 
+  captionpos = b, 
+  numbers = none
+}
+
+%%\renewcommand{\ttdefault}{pcr}
+
+\lstdefinestyle{simpleC}{
+  language = c,
+  basicstyle = {\ttfamily},
+  numbers = left,
+  numberstyle = \tiny,
+  stepnumber = 1,
+  %% numbersep = 5pt,
+  frame = simple,
+  breaklines = true, 
+  %% belowcaptionskip = 1\baselineskip,
+  captionpos = b, 
+  showtabs = false,
+  showspaces = false,
+  showstringspaces = false,
+  %% keywordstyle =
+  %% commentstyle =
+  %% identifierstyle =
+  %% stringstyle =
+  escapechar = ~,
+  mathescape = true
+}
+
+
+\lstdefinestyle{prova}{
+  language = c,
+  %% basicstyle = {\small \ttfamily},
+  %% keywordstyle = \underline,
+  %% lineskip = 3pt,
+  basicstyle = {\small \ttfamily},
+  morekeywords= {symmetric_sm_channel_t, symmetric_udn_channel_t, asymmetric_sm_channel_t, asymmetric_udn_channel},
+  %% numbers = left,
+  breaklines,
+  captionpos = b,
+  frame = simple,
+  escapechar = ~,
+  mathescape
+}
+
+\lstset{ style = prova }
+
+
+\renewcommand{\contentsname}{Indice}
+\renewcommand{\listfigurename}{Elenco delle Figure}
+\renewcommand{\listtablename}{Elenco delle Tabelle}
+\renewcommand{\lstlistingname}{Codice}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabella}
+
+\newcommand{\microsec}{\mu\mathrm{sec}}
+\newcommand{\tile}{TILE\textit{Pro}64}
+\newcommand{\Lcom}{$\mathrm{L}_{\mathrm{com}}$}
+\newcommand{\inLcom}{\mathrm{L}_{\mathrm{com}}}
+\newcommand{\Tscambio}{$\mathrm{T}_{\mathrm{scambio}}$}
+\newcommand{\inTscambio}{\mathrm{T}_{\mathrm{scambio}}}
+\newcommand{\deltacom}{$\Delta_{\mathrm{com}}$}
+\newcommand{\indeltacom}{\Delta_{\mathrm{com}}}
+\newcommand{\Tc}{$\mathrm{T}_\mathrm{C}$}
+\newcommand{\inTc}{\mathrm{T}_\mathrm{C}}
+\newcommand{\inTsystem}{\mathrm{T}_\Sigma}
+\newcommand{\inTsystemId}{\mathrm{T}_{\Sigma\_\mathrm{id}}}
+\newcommand{\subsystem}{$\Sigma1^{(n)}$}
+\newcommand{\insubsystem}{\Sigma1^{(n)}}
+\newcommand{\inTsubsystem}{\mathrm{T}_{\Sigma1}^{\phantom{\Sigma1}(n)}}
+\newcommand{\inTsubsystemId}{\mathrm{T}_{\Sigma1\mathrm{\_id}}^{\phantom{\Sigma1\_id}(n)}}
+\newcommand{\Tcalc}{$\mathrm{T}_{\mathrm{calc}}$}
+\newcommand{\inTcalc}{\mathrm{T}_{\mathrm{calc}}}
+\newcommand{\inTcalcId}{\mathrm{T}_{\mathrm{calc\_id}}}
+\newcommand{\inTfault}{\mathrm{T}_{\mathrm{fault}}}
+\newcommand{\inNfaulti}{\mathrm{N}_{\mathrm{fault\_i}}}
+\newcommand{\inTtrasfi}{\mathrm{T}_{\mathrm{trasf\_i}}}
+\newcommand{\Rq}{\mathrm{R}_{\mathrm{Q}}}
+\newcommand{\Wq}{\mathrm{W}_{\mathrm{Q}}(\rho)}
+\newcommand{\Ts}{$\mathrm{T}_{\mathrm{S}}^{\phantom{S}(n)}$}
+\newcommand{\inTs}{\mathrm{T}_{\mathrm{S}}^{\phantom{S}(n)}}
+\newcommand{\Ta}{$\mathrm{T}_{\mathrm{A}}$}
+\newcommand{\inTa}{\mathrm{T}_{\mathrm{A}}}
+\newcommand{\inEffic}{\varepsilon^{(n)}}
+\newcommand{\inTmult}{\mathrm{T}_{\textrm{multicast}}}
+\newcommand{\inTgather}{\mathrm{T}_{\textrm{gather}}}
+\newcommand{\inTsymsend}{\mathrm{T}_{\textrm{sym\_send}}}
+\newcommand{\inTasyminsend}{\mathrm{T}_{\textrm{asymin\_send}}}
+\newcommand{\inscal}{\mathrm{s}^{(n)}}
+\newcommand{\inscalId}{\mathrm{s}_{\mathrm{id}}^{\phantom{id}(n)}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\B}{\mathbf{b}}
+\newcommand{\C}{\mathbf{c}}
+
+\begin{document}
+
+\includepdf{frontespizio.pdf}
+
+%% \addcontentsline{toc}{section}{\listfigurename}
+%% \addcontentsline{toc}{section}{\listtablename}
+\tableofcontents
+\newpage
+\listoffigures 
+\newpage
+\listoftables 
+
+
+\newpage
+\input{Introduzione}
+
+\newpage
+\input{Architettura_main}
+
+\newpage
+\input{Specifica_main}
+
+\newpage
+\input{Esperimenti_main}
+
+\newpage
+\input{Conclusioni_main}
+
+\newpage
+%x\input{Biblio}
+
+
+\bibliographystyle{plain}
+\bibliography{sample1}
+
+
+\end{document}

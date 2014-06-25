@@ -1,0 +1,4 @@
+0 \\texttt{ch\\_sym\\_udn} \\texttt{ch\\_sym\\_sm\\_rdyack\\_no} \\texttt{ch\\_sym\\_sm\\_rdyack} \\texttt{ch\\_sym\\_sm\\_nullack} "uso della Rete di Interconnessione" "uso della Memoria Condivisa, coerenza cache predefinita" "uso della SM, configurazione coerenza cache" "uso della Memoria Condivisa, non uso di memory barrier" 
+1 42.026950 257.535306 111.091415 72.061138 
+8 49.525506 275.038966 137.038677 80.531339 
+14 55.529148 329.040873 155.041412 86.531522 

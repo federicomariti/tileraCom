@@ -1,0 +1,169 @@
+\subsection{Benchmark moltiplicazione matrice-vettore}
+In questa sezione viene proposto un secondo esperimento volto a verificare il comportamento delle implementazioni del supporto su SM e su UDN in una applicazione realistica, con un numero di processi parametrico e potenzialmente alto (fino al massimo numero di PE disponibili, visto l'uso del mapping esclusivo). In particolare \`e stata scelta una applicazione sintetizzata per mezzo di paradigmi di parallelismo che faccia uso sia di comunicazioni simmetriche e di almeno una comunicazione asimmetrica in ingresso. Per mostrare le differenze prestazionali delle due implementazioni la computazione scelta ha calcoli di grana fine e prevede l'elaborazione di dati su stream. Per lo stesso programma sono state eseguite due versioni che utilizzano rispettivamente: solo il supporto alle comunicazioni su SM, e solo il supporto alle comunicazioni su UDN. La principale metrica per il confronto di queste due esecuzioni \`e il tempo di completamento della computazione al variare della dimensione dei dati e del numero di processi usati.
+
+\subsubsection{Descrizione del problema}
+Il benchmark proposto si basa su un calcolo numerico di algebra lineare molto frequente nella risoluzione di problemi reali, non solo in ambito scientifico: il prodotto matrice per vettore. Sia $\mathbf{A} = (a_{ij})_{i=1,\ldots,\mathrm{M}, j=1,\ldots,\mathrm{M}} \in \mathbb{Z}^{\mathrm{MxM}}$ una matrice di interi di dimensione MxM, e sia $\mathbf{b} = (b_1,\ldots,b_\mathrm{M}) \in \mathbb{Z}^{\mathrm{M}}$ un vettore di M interi, il risultato dell'operazione prodotto matrice per vettore \`e un vettore $\mathbf{c} = (c_1,\ldots,c_\mathrm{M}) = \mathbf{A} \cdot \mathbf{b} \in \mathbb{Z^{M}}$ la cui componente $i$-esima \`e il prodotto scalare tra la riga $i$-esima di $\mathbf{A}$ e il vettore $\mathbf{b}$.
+\[ \forall \; i \in \{1,\ldots,\mathrm{M}\} \; : \; c_i = \mathbf{a}_i \cdot \mathbf{b} = \sum_{j=1}^{\mathrm{M}} a_{ij} \cdot b_j  \]
+Dove $\mathbf{a}_i = (a_{i1},\ldots,a_{i\mathrm{M}})$ \`e la riga $i$-esima della matrice $\mathbf{A}$. Da questa definizione segue direttamente l'algoritmo sequenziale del calcolo, che \`e descritto dal codice~\ref{lst:benchmark_seq_alg}.\\
+\begin{lstlisting}[float = b, morekeywords = {to}, caption = {Algoritmo sequenziale del calcolo matrice per vettore}, label={lst:benchmark_seq_alg}]
+int A[M][M], b[M], c[M];
+for i:=0 to M-1 do 
+  c[i] := 0;
+  for j:=0 to M-1 do
+    c[i] := A[i][j]*b[j] + c[i];
+\end{lstlisting}
+
+\begin{figure}[!tb]
+  \centering
+  \includegraphics[scale=.5]{grafo_sigma_compatto.pdf}
+  \caption[Computazione sequenziale del benchmark]{Rappresentazione compatta del grafo della computazione. L'elemento $\Sigma1$ \`e un modulo sequenziale o un sottosistema parallelo che esegue la moltiplicazione per $\mathbf{b}$ su ogni elemento della matrice. }
+  \label{fig:sigma_compatto}
+\end{figure}
+La computazione considerata riguarda un sistema $\Sigma$ modellato come un grafo aciclico contenente un modulo di elaborazione collegato a due stream, uno di ingresso e l'altro di uscita. Lo stream di ingresso \`e composto da $m$ matrici di interi di dimensione fissata MxM e con un tempo medio di interarrivo \Ta, lo stream di uscita invece trasporta i risultati del calcolo eseguito dal modulo. Su ogni elemento dello stream il modulo calcola la moltiplicazione matrice per vettore utilizzando l'elemento stesso come primo operando e un vettore $\mathbf{b}$, costante per tutta la durata dell'applicazione, come secondo operando. Il vettore risultato di ogni operazione viene scritto nello stream di uscita. 
+Ci poniamo nel caso in cui il tempo di calcolo di una moltiplicazione matrice per vettore, \Tcalc, sia superiore al tempo di interarrivo \Ta. Dato che il tempo di servizio della computazione $\Sigma$ \`e  superiore a quello ideale (il tempo di interarrivo dello stream \footnote{Per una trattazione formale della valutazione delle prestazioni di computazioni su stream in grafi aciclici si consulti \cite{hpc_part1}}), si richiede una trasformazione del modulo sequenziale in un sottosistema parallelo funzionalmente equivalente che permetta di eliminare o ridurre il collo di bottiglia nel sistema, determinato dal modulo stesso, e mantenga massima l'efficienza del sottosistema. 
+Si indica con \subsystem\ il sottosistema parallelo di calcolo, con grado di parallelismo $n$. 
+Dal punto di vista teorico e indipendentemente dalla soluzione parallela scelta, si ha che il tempo di servizio \emph{ideale} del sottosistema parallelo \`e il rapporto tra tempo di calcolo del programma sequenziale e il grado di parallelismo (equazione \ref{eq:TsubsysId}). Il tempo di servizio effettivo del sottosistema \`e invece il massimo valore tra il tempo medio di interarrivo dello stream e il tempo di servizio ideale del sottosistema (equazione \ref{eq:Tsubsys}). Si definisce \emph{efficienza} del sottosistema il rapporto tra i tempi di servizio ideale ed effettivo (equazione \ref{eq:subsysEff}). Ne segue che il sottosistema ha efficienza massima 
+%% quando il collo di bottiglia non \`e eliminato dal sottositema, 
+se e solo se nella computazione rimane il collo di bottiglia, 
+ovvero il grado di parallelismo \emph{non} \`e sufficientemente alto affinch\`e il tempo di servizio ideale sia minore o uguale del tempo di interarrivo. 
+Altrimenti, se il collo di bottiglia \`e stato eliminato, l'efficienza non \`e massima e il suo valore corrisponde al \emph{fattore di utilizzazione} del sottosistema, ovvero il rapporto tra il tempo di servizio ideale del sottosistema e il tempo di interarrivo. Da tale caratterizzazione ne segue il valore ottimo del grado di parallelismo, ovvero quel valore di $n$ che consente di eliminare il collo di bottiglia e mantenere massima l'efficienza del sottosistema (equazione \ref{eq:nopt}).
+\begin{flalign}
+  \label{eq:TsubsysId}
+  \inTsubsystemId &= \inTs = \frac{\inTcalc}{n} \\
+  \label{eq:Tsubsys}
+  \inTsubsystem &= \max(\{\inTa, \; \inTs \}) \\
+  \label{eq:subsysEff}
+  \inEffic &= \frac{\inTsubsystemId}{\inTsubsystem} = \left\{ \begin{array}{ll} \frac{\inTs}{\inTa}, & \inTs < \inTa \\ 1, & \inTs \ge \inTa \end{array} \right. \in (0,\ldots,1] \\
+  \label{eq:nopt}
+  n_{\mathrm{opt}} \; &= \; \min(\{ n \in \mathbb{N} \;\, | \;\, \inTs \le \inTa \}) \; = \; \left\lceil \frac{\inTcalc}{\inTa} \right\rceil
+\end{flalign}
+\\
+
+Altre definizioni utili per caratterizzare le prestazioni dell'applicazione sono le seguenti:
+\begin{description}
+\item [Tempo di completamento dello stream] \`e definita come il tempo medio impiegato per completare l'esecuzione del calcolo su tutti gli elementi dello stream. Se la lunghezza dello stream $m$ \`e molto superiore al grado di parallelismo $n$ \`e possibile approssimarlo come m volte il tempo medio di servizio del sistema
+\begin{equation}
+\label{eq:Tc}
+m >> n \quad \Rightarrow \quad \inTc = m \cdot \inTsystem
+\end{equation}
+\item [Scalabilit\`a] esprime il risparmio relativo del tempo medio di servizio che pu\`o essere ottenuto usando l'implementazione parallela con $n$ processi rispetto all'implementazione sequenziale. Pu\`o essere espressa anche in termini del tempo di completamento.
+\begin{flalign}
+\label{eq:s}
+s^{(n)} &= \frac{\inTcalc}{\inTsystem} \\
+\label{eq:sId}
+s_{\mathrm{id}}^{\phantom{id}(n)} &= \frac{\inTcalc}{\inTsystemId} = \frac{\inTcalc}{\frac{\inTcalc}{n}} = n
+\end{flalign}  
+%% The speedup of a parallel implementation expresses the relative saving of execution time that can be obtained by using a parallel execution on p processors compared to the best sequential implementation.
+
+\end{description}
+
+\subsubsection{Sul problema scelto}
+\begin{figure}[!t]
+  \begin{subfigure}[b]{.5\textwidth}
+    \includegraphics[scale=.38]{servicetime_eg_coarse-grain.pdf}
+    \caption{Calcolo di grana grossa}
+    \label{fig:eg_coarse_grain}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{.5\textwidth}
+    \includegraphics[scale=.38]{servicetime_eg_fine-grain.pdf}
+    \caption{Calcolo di grana fine}
+    \label{fig:eg_fine_grain}
+  \end{subfigure}
+  \caption[Esempio di due computazioni su stream con diversa grana]{Rappresentazione grafica di due computazioni con diversa ``grana'' di calcolo, in presenza e in assenza di un processore di comunicazione}
+  \label{fig:eg_grain}
+\end{figure}
+\`E importante soffermarci e motivare il tipo di applicazione scelta: il supporto alle comunicazioni fornito \`e specifico per un dominio applicativo caratterizzato da grana di calcolo fine, se non finissima. Solo in computazioni di questo tipo siamo interessati a ridurre la latenza di comunicazione, e si osservano quindi delle differenze nelle prestazioni globali dell'applicazione. A scopo esemplificativo si considera una parte di una applicazione su stream riguardante due moduli collegati in pipeline: si assume che il tempo di calcolo del primo modulo sia opportunamente dimensionato come il tempo di interarrivo dello stream. Le figure~\ref{fig:eg_coarse_grain},~\ref{fig:eg_fine_grain} mostrano due situazioni con diversa grana di calcolo del primo modulo. Se il tempo di calcolo \`e di diversi ordini di grandezza superiore alla latenza di comunicazione, l'ottimizzazione di qualche centinaio di cicli di clock della comunicazione non consegue alcun vantaggio sul tempo di servizio effettivo del modulo; la comunicazione avr\`a sempre impatto nullo o trascurabile nel tempo di servizio effettivo del modulo. Se \`e possibile la sovrapposizione del calcolo infatti la latenza di comunicazione \`e completamente mascherata dal tempo di calcolo, altrimenti, la latenza di comunicazione si va a sommare al tempo di calcolo, risultando trascurabile. L'ottimizzazione delle comunicazioni \`e invece apprezzabile quando la latenza di queste \`e dello stesso ordine di grandezza del tempo di calcolo. 
+
+Computazioni di grana fine sono molto frequenti nel dominio delle applicazioni su stream di elementi, si pensi a forme di deep packet inspection nel campo della computer networking, nelle quali vengono esaminati specifiche parti di pacchetti, che passano da un punto di ispezione di una rete di computer, alla ricerca di non conformit\`a, o per collezionare statistiche sulle informazioni trasmesse. Computazioni su dato singolo, in special modo quelle che seguono il paradigma Data Parallel sono caratterizzate da grana fine delle computazioni, in seguito al partizionamento del dato. Anche in queste applicazioni \`e utile disporre di un supporto efficiente alle comunicazioni, sia per le forme di comunicazione collettiva, che per le comunicazioni tra moduli in caso di dipendenze sui dati (forme Stencil).
+
+Il Benchmark \`e stato scelto nell'ottica di apprezzare le differenze tra le due realizzazioni del supporto e di verificare il loro comportamento in una applicazione reale. Le due implementazioni del supporto non differiscono solo dal conseguimento di una diversa latenza di comunicazione, come mostrato nell'esperimento precedente. La versione UDN permette un disaccoppiamento tra la comunicazione dei processi e l'accesso ai dati in memoria. La comunicazione tra due processi \`e realizzata interamente con l'uso della UDN e senza l'impiego della memoria condivisa. Ci\`o ha come effetto un numero di richieste alla memoria condivisa minore rispetto all'implementazione dei canali con la memoria. Ci aspettiamo che questo fatto abbia ripercussioni positive sulle prestazioni globali dell'applicazione, non solo per quanto riguarda le comunicazioni, ma in pi\`u in generale, relativamente al tempo di risposta delle richieste alla memoria.
+  
+
+\subsubsection{Il metodo di parallelizzazione scelto}
+La parallelizzazione del modulo sequenziale \`e stata scelta tra un insieme ristretto (per il tipo di computazione) di paradigmi la cui semantica e modello dei costi sono noti \cite{hpc_part1}, tra cui:
+\begin{description}
+\item [Farm] \`e caratterizzata dalla replicazione della funzione di calcolo sequenziale in $n$ identiche unit\`a di elaborazione (sottoinsieme delle unit\`a worker). \`E applicabile solo a computazioni su stream, viene usata una unit\`a emettitore per la distribuzione di un elemento dello stream ad un worker, e una unit\`a collettore, collegata ad ogni worker, per ricevere i risultati;
+\item [Data Parallel] sono forme di parallelismo che richiedono una discreta conoscenza del calcolo sequenziale ma che per questo motivo risultano flessibili alla specifica computazione. Si basano sul partizionamento dei dati e sulla replicazione della funzione di calcolo nelle unit\`a worker, possono essere applicate sia a singoli dati che a stream di dati; in quest'ultimo caso il partizionamento \`e applicato ad ogni elemento dello stream. I gradi di libert\`a forniti riguardano la strategia di partizionamento dei dati, l'eventuale replicazione di dati, l'organizzazione delle unit\`a worker (indipendenti o interagenti) e il collezionamento dei risultati parziali. Vengono usate forme di comunicazione collettiva per distribuire le partizioni del dato (\emph{scatter}), per collezionare i risultati parziali (\emph{gather}) e/o per costruire il risultato (ad esempio l'operazione di \emph{reduce}). A seconda dell'organizzazione dei workers si distinguono due famiglie di forme Data Parallel: \emph{Map} se ogni worker esegue un calcolo completamente indipendente da quello degli altri worker, \emph{Stencil-based} se esiste un'interazione tra i workers durante l'esecuzione del calcolo.
+\end{description}
+Si \`e deciso di adottare un paradigma di tipo Data Parallel cos\`i da poter applicare il supporto alle comunicazioni per la realizzazione delle comunicazioni collettive coinvolte, in modo da confrontare le prestazioni dei due tipi di supporto forniti anche relativamente all'implementazione di tali comunicazioni. In particolare, il collezionamento dei risultati sar\`a realizzato per mezzo di un canale asimmetrico in ingresso che ha come mittenti l'insieme dei processi worker dell'implementazione Data Parallel, e come destinatario un processo collettore. Come spiegato in seguito si rende necessaria una distribuzione di ciascun elemento dello stream ai processi worker, piuttosto che una distribuzione delle partizioni di ogni elemento. L'implementazione di questa operazione fa uso dei canali simmetrici ed \`e caratterizzata da una struttura ad albero mappata sull'insieme dei worker. \\
+
+Analizzando le dipendenze sui dati del programma sequenziale (codice~\ref{lst:benchmark_seq_alg}) si osserva che una qualsiasi istruzione di una certa iterazione del ciclo esterno \`e indipendente da tutte le istruzioni di un'altra qualsiasi iterazione dello stesso ciclo. Al contrario ogni istruzione di una iterazione del ciclo interno dipende (\emph{Read-After-Write}) dall'istruzione precedente della stessa iterazione.
+\begin{lstlisting}[caption={Rappresentazione delle istruzioni di due cicli esterni contigui.}]
+...
+{ c[i]:=0; c[i]:=A[i][0]*b[0]+c[i]; c[i]:=A[i][1]*b[1]+c[i]; ... c[i]:=A[i][M-1]*b[M-1]+c[i]; }
+{ c[i+1]:=0; c[i+1]:=A[i+1][0]*b[0]+c[i+1]; ... c[i+1]:=A[i+1][M-1]*b[M-1]+c[i+1]; }
+...
+\end{lstlisting}
+Ne segue che pu\`o essere esplicitato del parallelismo sul ciclo esterno, eseguendo iterazioni diverse del ciclo esterno in processi diversi, ottenendo in tal modo un grado massimo di parallelismo $n = \textrm{M}$ e una complessit\`a di esecuzione $O(n)$ contro $O(n^2)$ del calcolo sequenziale. Da ci\`o deriva direttamente il partizionamento delle matrici, che \`e per righe. In tale situazione si ha la ``grana'' minima sia per quanto riguarda le partizioni dei dati, che per il tempo di calcolo.
+In generale, un'implementazione effettiva fa uso di un grado di parallelismo $n$ minore di M, dipendentemente dal valore medio del tempo di interarrivo dello stream. In tale situazione le matrici sono sempre partizionate per riga, con grana $g = \lceil M / n \rceil$ righe, il calcolo dei processi worker consiste di $g$ prodotti scalari tra ogni riga della partizione associata al worker e il vettore $\mathbf{b}$. 
+
+Si adotta la replicazione del vettore $\mathbf{b}$ nei processi worker, ci\`o \`e possibile in quanto tale oggetto viene acceduto in sola lettura. Di conseguenza l'implementazione Data Parallel descritta \`e di tipo \emph{Map}. \\
+
+Rispetto a quanto detto finora il sottosistema Map \`e caratterizzato da una comunicazione di \emph{multicast} piuttosto che dalla scatter; infatti si utilizza il supporto alle comunicazioni descritto nella sezione~\ref{sct:specifica_meccanismi} per realizzare gli archi del grafo,
+%% \marginpar{RENDERE MEGLIO}
+ conseguentemente abbiamo il sottografo Map operante su uno stream di riferimenti. Lo stream di ingresso trasporter\`a i riferimenti alle matrici, la distribuzione di un elemento dello stream ai moduli della Map \`e quindi l'invio dello stesso riferimento agli $n$ moduli; sar\`a poi dovere di ogni worker eseguire il calcolo sulla propria partizione dell'oggetto riferito dal puntatore ricevuto in ingresso. \\
+
+L'implementazione pi\`u semplice della distribuzione multicast fa uso di un singolo processo distributore che in modo sequenziale esegue l'invio del dato ad ogni processo worker. Questa soluzione \`e critica per comunicazioni di grana fine, in quanto pu\`o diventare rapidamente un collo di bottiglia all'aumentare del grado di parallelismo. Considerato l'ambito di applicazioni in si pone il supporto \`e lecito aspettarsi stream caratterizzati da elevata banda, quindi la necessit\`a di disporre di comunicazioni collettive (tra cui la multicast) efficienti, che non siano collo di bottiglia per l'applicazione. Implementazioni della multicast adeguate a questo contesto hanno tempo di servizio costante, ad esempio implementano il processo distributore come un sottosistema parallelo strutturato ad albero. In questo caso, grazie all'effetto-pipeline, il tempo di servizio \`e pari alla latenza di comunicazione di un canale simmetrico per l'ariet\`a dell'albero. Ci\`o richiedere tuttavia nodi aggiuntivi a quelli del sottosistema parallelo. Una soluzione alternativa che mantenga lo stesso tempo di servizio senza moduli addizionali consiste nell'implementare l'albero in modo distribuito direttamente nell'insieme dei moduli worker.
+\begin{figure}[!t]
+  \centering
+  \includegraphics[scale=.5]{grafo_sigma.pdf}
+  \caption[Computazione dell'implementazione parallela del benchmark]{Grafo della computazione Map (\subsystem) che \`e collegata allo stream e che fa uso della multicast strutturata ad albero binario mappato sull'insieme di processi worker}
+  \label{fig:grafo_map}
+\end{figure}
+In questo modo, un worker, prima di avviare il proprio calcolo su un elemento dello stream prende parte alla comunicazione multicast dell'elemento stesso realizzata in modo distribuito sull'insieme dei worker. Questa soluzione (per un tempo di interarrivo superiore a 2 volte il tempo di servizio della multicast) permette di risparmiare nodi di elaborazione rispetto ad una soluzione con un sottosistema di nodi specializzato nella distribuzione multicast. 
+Di contro, una realizzazione di questo tipo fa pagare il proprio tempo di servizio all'interno del tempo del sottosistema di calcolo nel caso in cui non sia possibile sovrapporre le comunicazioni al calcolo, come accade in \tile\ che non dispone dei supporti architetturali necessari nei PEs per l'esecuzione delle comunicazioni\footnote{Una forma di sovrapposizione esiste quando si fa uso del supporto alle comunicazioni che usa UDN, \`e infatti possibile che il trasferimento del messaggio sia eseguito in modo parzialmente sovrapposto all'esecuzione del calcolo del mittente.}.
+
+La formulazione del tempo di servizio ideale e del grado di parallelismo ottimo del sottosistema Map differisce da quella definita precedentemente, in quanto occorre considerare che le comunicazioni non sono sovrapposte al calcolo. Di conseguenza nel tempo di servizio del sottosistema di calcolo si pagano completamente i tempi di servizio della multicast e della gather (equazione \ref{eq:impl_TsubsysId}), chiamiamo con \deltacom la somma di tali tempi. Anche il grado ottimo di parallelismo \`e rivalutato nella equazione \ref{eq:impl_nopt}.
+\begin{flalign}
+  \nonumber
+  \inTsubsystemId \; &= \; \inTs \; 
+  = \; \inTmult + \frac{\inTcalc}{n} + \inTgather \; \\ 
+  \label{eq:impl_TsubsysId}
+  &= \; 2 \cdot \inTsymsend + \frac{\inTcalc}{n} + \inTasyminsend \; 
+  = \; \indeltacom + \frac{\inTcalc}{n} \\
+  \label{eq:impl_nopt}
+  n_{\mathrm{opt}} \; &= \; \left\lceil \frac{\inTcalc}{\inTa - \indeltacom} \right\rceil
+\end{flalign}
+Come ulteriore conseguenza, applicando la definizione di scalabilit\`a al tempo di servizio, non \`e possibile ottenere il valore ideale pari al grado di parallelismo usato.
+
+\subsubsection{Sulla latenza di accesso alla memoria}
+\label{sct:client_server}
+I valori di \Tcalc, \deltacom(SM) e \deltacom(UDN) non sono costanti, ma variano con il  grado di parallelismo usato. All'aumentare del numero di processi coinvolti nell'applicazione aumentano il numero di richieste alla memoria condivisa e quindi aumenta l'uso delle reti di interconnessione e della gerarchia di memoria, con possibili congestioni, e in generale un aumento del tempo di risposta.
+In particolare sia \Tcalc\ che $\indeltacom(\mathrm{SM})$ dipendono dalla latenza di accesso alla memoria e al sottosistema di cache, in quanto, in caso di \emph{fault} dei dati nella cache locale o nella cache home, \`e necessario trasferire il blocco corrispondente da un'altra cache o da un controllore di memoria, rispettivamente. Formalmente il problema pu\`o essere modellando come un sistema \emph{client-server}: un controllore di memoria, o una L2 cache, \`e considerato il modulo servente di un certo insieme di moduli clienti: il sottoinsieme dei PE che producono le richieste di accesso alla memoria a quel preciso modulo. Il tempo medio di risposta, $\Rq$, del servente \`e quindi caratterizzato dal periodo di tempo che la richiesta trascorre nella coda del servente, $\Wq$, pi\`u la latenza di elaborazione del servente. Essendo la computazione \emph{domanda e risposta} il fattore di utilizzazione $\rho$ del servente \`e sempre inferiore ad 1. Al variare del fattore di utilizzazione del servente il tempo di risposta $\Rq$ si mantiene pressocch\`e costante; dopo un certo valore, detto critico, di $\rho$, $\Rq$ aumenta asintoticamente ad infinito con $\rho$ che tende ad 1 (congestione). Il tempo di servizio effettivo di ogni cliente pu\`o essere caratterizzato dalla somma del tempo medio di calcolo pi\`u il $\Rq$. L'aumento della banda di richieste al servente, quindi l'aumento del fattore di utilizzazione $\rho$, e quindi l'aumento del tempo di risposta $\Rq$ pu\`o essere causato dalla riduzione del tempo (grana) di calcolo nei clienti, oppure dall'aumento del numero di clienti. In \cite{hpc_part2} \`e presentata una analisi della latenza di accesso alla memoria con e senza conflitti, e relativi modelli dei consti.
+%% \begin{flalign}
+%%   \inTcalc = \inTcalcId + \inTfault = \left [ \, \frac{\tau}{n}(1 + \theta) + \lambda \tau + \delta \, \right ] + \left [ \, \sum_i \inNfaulti \cdot \inTtrasfi  \, \right ]
+%% \end{flalign}
+
+\subsubsection{Descrizione dell'implementazione}
+L'applicazione considerata \`e fittizia, ovvero non esiste un dispositivo, o processing element, che produce lo stream, come non esiste quello che lo riceve. Al fine di poter eseguire l'applicazione sono stati realizzati due processi, eseguiti in modo esclusivo su due PE della macchina, con il compito di produrre e consumare gli stream di matrici e di vettori rispettivamente. Questi processi sono collegati al sottosistema parallelo per mezzo dei canali messi a disposizione dal nostro supporto. Ne segue che il massimo parallelismo esplicitabile dalla macchina per la realizzazione della Map \`e $N = 59$, occorre infatti riservare un altro PE all'esecuzione del processo \verb+main+ dell'applicazione, e due PE sono riservati per l'esecuzione di funzionalit\`a del sistema operativo.
+
+Il processo generatore dello stream \`e inizializzato con un tempo di interarrivo parametrico. La temporizzazione dello stream viene realizzata da questo processo invocando la primitiva di conteggio dei cicli di clock ed effettuando una attesa attiva sul valore del tempo trascorso, fin tanto che \`e minore al tempo di interarrivo specificato. Il processo generatore \`e collegato al primo processo worker del Map che costituisce il processo radice dell'albero che realizza la multicast. \`E compito di tale worker avviare la multicast distribuita sull'insieme dei worker per mezzo dei canali che costituiscono la struttura ad albero della comunicazione. Ogni processo worker \`e quindi collegato al processo collettore per mezzo di un canale asimmetrico in ingresso.
+
+Il mapping dei processi nella macchina adottato consiste nell'eseguire i processi generatore e collettore nei primi due PE, i processi worker sono mappati in modo consecutivo a partire dal terzo PE, il processo main \`e mappato sull'ultimo PE disponibile. La topologia della comunicazione multicast si basa sull'applicazione della strategia \emph{depth-first} applicata al mapping di un albero binario nella sequenza lineare dei processi worker. 
+
+L'applicazione \`e eseguita in modo parametrico nelle seguenti variabili:
+\begin{itemize}
+\item il tempo di interarrivo (\Ta) in cicli di clock,
+\item la dimensione della matrice (il numero di righe M),
+\item il grado di parallelismo del sottosistema Map ($n$),
+\item la lunghezza dello stream ($m$), 
+\item l'implementazione adottata dai canali simmetrici e dai canali asimmetrici in ingresso.
+\end{itemize}
+Si sono eseguite le misurazioni per due diverse configurazioni di implementazioni del supporto alle comunicazioni: utilizzando solo UDN, oppure solo la memoria condivisa. In tutte le esecuzioni si \`e adottata una lunghezza dello stream $m = 500$ sufficientemente maggiore al massimo grado di parallelismo esplicitabile (circa 60) affinch\`e sia possibile usare l'approssimazione dell'equazione \ref{eq:Tc}.
+
+Le misure proposte nel seguito non sono mai relative ad una singola esecuzione, ma sono valori medi delle misure effettuate in un certo numero di esecuzioni sullo stesso tipo di computazione.
+
+\subsubsection{Descrizione del metodo di misurazione}
+Le misure prese in considerazione sono il tempo di completamento dello stream e il tempo di servizio del sottosistema Map. Tutti i processi dell'applicazione si sincronizzano su un oggetto di tipo barriera, il tempo di completamento viene avviato dopo che il processo generatore ha passato questa barriera e fermato al termine dell'esecuzione del processo collettore. Il tempo di servizio della Map \`e misurato nel processo worker alla radice dell'albero multicast ed \`e il risultato della media di tutti i tempi impiegati da tale processo tra la ricezione di due elementi contigui nello stream. 
+
+Durante l'analisi saremo interessati a caratterizzare le presentazioni del sistema sotto altri punti di vista:
+\begin{itemize}
+\item il tempo di calcolo di un singolo prodotto scalare eseguito da un processo worker: per stimare questo valore viene misurato il tempo di calcolo di ogni singolo worker per ogni elemento dello stream, il tempo medio di calcolo viene quindi diviso per la dimensione della partizione (numero di righe). La misura \`e avviata in ogni worker dopo aver concluso la partecipazione alla multicast e viene conclusa prima di inviare il risultato al collettore.
+\item il tempo di servizio della multicast: \`e stimato come media delle misure del tempo impiegato dal worker alla radice dell'albero mulitcast per eseguire l'invio ai due sotto-alberi.
+\end{itemize}
+
+\subsubsection{Risultati delle misurazioni}
+
+\input{Benchmark_Results}
+

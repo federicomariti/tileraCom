@@ -1,0 +1,267 @@
+%% \FloatBarrier
+%% \subsection{Multicast service time}
+
+%% \begin{lstlisting}[morekeywords={multicast_start, multicast_sum}]
+%% void * generator_task(void *args...) {
+%%   ...
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     a = get_clock_cycle();
+%%     sym_send(ch_out, A_set[i]);
+%%     while (get_clock_cycle() - a < Ta) 
+%%       ;
+%%   }
+%%   ...
+%% }
+
+%% void * worker_task(void *args...) {
+%%   ...
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     A = (int *)sym_receive(ch_in);
+%%     atomic_compiler_barrier();
+%%     if (rank == 0)
+%%       multicast_start = get_clock_cycle();
+%%     atomic_compiler_barrier();
+%%     if (ch_left != NULL) sym_send(ch_left, A);
+%%     if (ch_right != NULL) sym_send(ch_right, A);
+%%     atomic_compiler_barrier();
+%%     if (rank == 0)
+%%       multicast_sum = get_clock_cycle() - multicast_start;
+%%     atomic_compiler_barrier();
+%%     for (j=0; j<g; j++) {
+%%       C[j*rank] = 0;
+%%       for (k=0; k<M; k++) 
+%%         C[j*rank] = *(A+j*M+k) * B[k] + C[j*rank];
+%%     }
+%%     asymin_send(ch_out, C);
+%%   }
+%%   if (rank == 0)
+%%     fprintf(output_file, ``%d %f\n'', n, (double)multicast_sum/m);
+%%   ...
+%% }
+
+%% void * collector_task(void *args...) {
+%%   ...
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     (void)asymin_receive(ch_in);
+%%   }
+%%   ...
+%% }
+%% \end{lstlisting}
+
+\begin{figure}[p]
+  \caption{Grafici del tempo di multicast al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_56.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_168.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_280.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_56.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_168.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_280.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \begin{figure}[p]
+%%   \caption{Grafici del tempo di multicast al variare del tempo di interarrivo}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+%%     \caption{Implementazione con solo UDN}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size280}
+%%     \end{subfigure}
+%%     \label{fig:allScalbility_UDN}
+%%   \end{subfigure}
+%%   \hspace{2ex}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     \caption{Implementazione con solo SM}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size280}
+%%     \end{subfigure}
+%%     \label{fig:allscalability_SM}
+%%   \end{subfigure}
+%% \end{figure}
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \begin{figure}[p]
+%%   \caption{Grafici del tempo di multicast al variare del tempo di interarrivo}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+%%     \caption{Implementazione con solo UDN}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_UDN_size280}
+%%     \end{subfigure}
+%%     \label{fig:allScalbility_UDN}
+%%   \end{subfigure}
+%%   \hspace{2ex}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     \caption{Implementazione con solo SM}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_01_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_01_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_01_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:scalability_SM_size280}
+%%     \end{subfigure}
+%%     \label{fig:allscalability_SM}
+%%   \end{subfigure}
+%% \end{figure}
+

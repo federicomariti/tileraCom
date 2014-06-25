@@ -1,0 +1,74 @@
+\begin{thebibliography}{10}
+
+\bibitem{buono2013parallel}
+Daniele Buono, Marco Danelutto, Silvia Lametti, and Massimo Torquati.
+\newblock Parallel patterns for general purpose many-core.
+\newblock In {\em Parallel, Distributed and Network-Based Processing (PDP),
+  2013 21st Euromicro International Conference on}, pages 131--139. IEEE, 2013.
+
+\bibitem{cole2004bringing}
+Murray Cole.
+\newblock Bringing skeletons out of the closet: a pragmatic manifesto for
+  skeletal parallel programming.
+\newblock {\em Parallel computing}, 30(3):389--406, 2004.
+
+\bibitem{tileracorporation}
+Tilera Corporation.
+\newblock Tilepro processor family,
+  \url{http://www.tilera.com/products/processors/TILEPro\_Family}, 2012.
+
+\bibitem{gonzalez2010survey}
+Horacio Gonz{\'a}lez-V{\'e}lez and Mario Leyton.
+\newblock A survey of algorithmic skeleton frameworks: high-level structured
+  parallel programming enablers.
+\newblock {\em Software: Practice and Experience}, 40(12):1135--1160, 2010.
+
+\bibitem{mattson2004patterns}
+Timothy~G Mattson, Beverly~A Sanders, and Berna~L Massingill.
+\newblock {\em Patterns for parallel programming}.
+\newblock Addison-Wesley Professional, 2004.
+
+\bibitem{evalFineGrainSynchMech}
+G.~Mencagli T.~De~Matteis, F.~Luporini and M.~Vanneschi.
+\newblock Evaluation of architectural supports for fine-grained synchronization
+  mechanisms.
+\newblock In {\em 11th IASTED International Conference on Parallel Distributed
+  Computing and Networks, Innsbruck, Austria}, 2013.
+
+\bibitem{ug101}
+Tilera.
+\newblock {\em UG101 - Tile Processor User Architecture Manual}.
+
+\bibitem{ug120}
+Tilera.
+\newblock {\em UG120 - Tile Processor Architecture Overview for the Tilepro
+  Series}.
+
+\bibitem{ug205}
+Tilera.
+\newblock {\em UG205 - Programming the Tile Processor}.
+
+\bibitem{vanneschi2009architettura}
+M.~Vanneschi.
+\newblock {\em Architettura degli elaboratori}.
+\newblock Didattica e ricerca: Manuali. Plus, 2009.
+
+\bibitem{hpc_part2}
+M.~Vanneschi.
+\newblock {\em Parallel Architectures}.
+\newblock Course notes of High Performance Computing in Computer Science and
+  Networking, University of Pisa. 2012.
+
+\bibitem{hpc_part1}
+M.~Vanneschi.
+\newblock {\em Structuring and Design Methodology for Parallel Computations}.
+\newblock Course notes of High Performance Computing in Computer Science and
+  Networking, University of Pisa. 2012.
+
+\bibitem{4378780}
+D.~Wentzlaff, P.~Griffin, H.~Hoffmann, Liewei Bao, B.~Edwards, C.~Ramey,
+  M.~Mattina, Chyi-Chang Miao, J.F. Brown, and A.~Agarwal.
+\newblock On-chip interconnection architecture of the tile processor.
+\newblock {\em Micro, IEEE}, 27(5):15--31, 2007.
+
+\end{thebibliography}

@@ -1,0 +1,259 @@
+# The default configuration file for use with PCIe cards.
+#
+# In this file, we restrict all dedicated tiles to the bottom row (unless
+# GPIO and/or GBE are defined), so that all other tiles will be available
+# for user applications.  This is not necessarily optimal.  Normally, for
+# example, it is better to put xgbe/0 on the top row.
+#
+
+
+# Several variables are used by this configuration file to produce
+# various OS configurations.  These can be defined using tile-monitor
+# or tile-mkboot's "--hvd" option.  They include:
+#
+# - XGBE_ARGS: additional options for the xgbe driver, such as
+#   "native_driver" to enable Linux networking.  (This would also
+#   require defining XARGS to include "TLR_NETWORK=xgbe0" to bring up
+#   the interface at boot time.)  This option is only used for the
+#   xgbe interface connected to the Ethernet switch on boards with
+#   such a switch.
+#
+# - GBE: if defined as 1, provide drivers for both Gigabit Ethernet ports,
+#   and enable the native_driver option on them.  (To bring up an
+#   interface at boot time, you'll need to also request that via an
+#   XARGS addition, such as "TLR_NETWORK=gbe0".)  This option only
+#   applies to boards which support the GbE ports, such as the
+#   TILExpress-22G.
+#
+# - GPIO: if defined as 1, provide Flex I/O drivers that enable Compact
+#   Flash (CF) and Solid State Drive (SSD) devices.  This option
+#   applies to TILExpress-64 cards with a CF socket, and
+#   TILExpress-20G cards with an onboard SSD device.
+#
+# The special XARGS variable, which is automatically extended using
+# tile-monitor or tile-mkboot's "--hvx" option, provides additional
+# Linux boot flags and environment variables.
+#
+# The System Programmer's Guide describes the Tilera-specific Linux
+# boot flags.  Some useful boot flags include:
+#
+#   quiet               Stifle linux boot spew.
+#   hugepages=[...]     Request huge pages.
+#   dataplane=[...]     Request dataplane tiles.
+#
+# The System Programmer's Guide describes the environment variables
+# which affect the default /etc/rc script.  Some useful ones include:
+#
+#   TLR_QUIET=y         Quieten certain programs.
+#   TLR_NETWORK=[...]   Activate networking.
+#   TLR_TELNETD=n       Disable telnetd.
+#   TLR_INTERACTIVE=n   Disable interactive shell.
+#   TLR_SHEPHERD=n      Disable shepherd.
+#   TLR_SHEPHERD_ARGS="xxx"  Specify alternate shepherd arguments.
+#
+# Note that the default TLR_SHEPHERD_ARGS cause the shepherd to
+# listen for connections on PCIe channel 0 and TCP port 963, which
+# is probably not appropriate for production use.
+#
+
+
+# Several variables are extracted from properties in /dev/tilepciN/info,
+# including CHIP_VERSION, CHIP_WIDTH, CHIP_HEIGHT, and BOARD_HAS_PLX.
+#
+# We define shorter variables for the chip width and height, and more
+# readable variables for the X/Y coordinates of the right/bottom edges.
+# 
+define W $CHIP_WIDTH
+define H $CHIP_HEIGHT
+define BOTTOM $($H-1)
+define RIGHT $($W-1)
+
+
+# HACK: Support the old "--hvd GBE" idiom.
+ifdef GBE
+define GBE_0 1
+define GBE_1 1
+endif
+
+
+# Allow XGBE_ARGS to be used below, even if they are not defined.
+ifndef XGBE_ARGS
+define XGBE_ARGS
+endif
+
+
+# Handle CPU_SPEED, STRIPE_MEMORY, OPTIONS, and CONFIG_VERSION.
+
+include options.hvh
+
+
+# The default shared tile.
+
+options default_shared=$($RIGHT-1),$BOTTOM
+
+
+# Disable memprof, srom, gpio, xgbe and the second pcie interface
+
+#if !defined(MEMPROF) || $MEMPROF
+#device memprof memprof
+#  dedicated 3,$BOTTOM
+#endif
+
+#if !defined(SROM) || $SROM
+#device srom/0 srom
+#endif
+
+#if defined(GPIO) && $GPIO
+#device gpio/0 gpio
+#  shared $($RIGHT-1),$($BOTTOM-1)
+#device gpio/1 gpio
+#  shared $($RIGHT-1),$($BOTTOM-1)
+#device gpio/2 gpio
+#  shared $($RIGHT-1),$($BOTTOM-1)
+#device gpio/3 gpio
+#  shared $($RIGHT-1),$($BOTTOM-1)
+#endif
+
+
+#
+# We use the BOARD_HAS_PLX property to distinguish between the
+# TILExpress-20G and TILExpress-10G cards (which have a PLX PCIe switch),
+# and the TILExpress-64 and TILExpress-36 cards (which do not).
+#
+# We then use the CHIP_WIDTH property to distinguish between the
+# TILExpress-20G and TILExpress-64 cards (which have a 8x8 chip), and
+# the TILExpress-10G and TILExpress-36 cards (which have a 6x6 chip).
+#
+
+if $BOARD_HAS_PLX
+#
+# TILExpress-20G / TILExpress-10G card.
+#
+
+if $W >= 8
+#
+# The TILExpress-20G card has two pcie and two xgbe interfaces.
+#
+
+if !defined(PCI_0) || $PCI_0
+device pcie/0 pcie
+  #dedicated 0,$BOTTOM
+  dedicated $RIGHT,$BOTTOM
+endif
+
+#if !defined(PCI_1) || $PCI_1
+#device pcie/1 pcie
+#  dedicated 1,$BOTTOM
+#endif
+
+#if !defined(XGBE_0) || $XGBE_0
+#device xgbe/0 xgbe_ipp1_epp
+#  dedicated $($W-4),$BOTTOM $($W-3),$BOTTOM
+#  args $XGBE_ARGS
+#endif
+
+#if !defined(XGBE_1) || $XGBE_1
+#device xgbe/1 xgbe_ipp1_epp
+#  dedicated $($W-2),$BOTTOM $($W-1),$BOTTOM
+#  args $XGBE_ARGS
+#endif
+
+else
+#
+# The TILExpress-10G card has only one pcie and one xgbe interface.
+#
+
+if !defined(PCI_0) || $PCI_0
+device pcie/0 pcie
+  dedicated 0,$BOTTOM
+endif
+
+#if !defined(XGBE_0) || $XGBE_0
+#device xgbe/0 xgbe_ipp1_epp
+#  dedicated $($W-2),$BOTTOM $($W-1),$BOTTOM
+#  args $XGBE_ARGS
+#endif
+
+endif
+
+#
+# Optionally activate both GbE drivers, and enable Linux networking
+# by default (use GBE_ARGS to override).
+#
+
+#ifndef GBE_ARGS
+#define GBE_ARGS native_driver
+#endif
+
+#if defined(GBE_0) && $GBE_0
+#device gbe/0 gbe_ipp1_epp
+#  dedicated $RIGHT,$($BOTTOM-4) $RIGHT,$($BOTTOM-3)
+#  args $GBE_ARGS
+#endif
+
+#if defined(GBE_1) && $GBE_1
+#device gbe/1 gbe_ipp1_epp
+#  dedicated $RIGHT,$($BOTTOM-2) $RIGHT,$($BOTTOM-1)
+#  args $GBE_ARGS
+#endif
+
+else
+#
+# TILExpress-64 / TILExpress-36 cards.
+#
+# These cards have an onboard network switch, and GPIO signals connected to
+# a CompactFlash slot.  We enable the gbe since its MDIO connection is
+# required to configure the onboard network switch.
+#
+# While the TILExpress-64 card does have two xgbe devices, the connector
+# for xgbe/1 is not exposed on the card's backpanel.  This device is thus
+# infrequently used, so we do not configure it by default.
+#
+
+device gbe/0
+  dedicated 1,$BOTTOM
+
+if $W >= 8
+#
+# The TILExpress-64 card has two pcie interfaces, but only pcie/1 is
+# connected to the edge connector on the card.
+#
+if !defined(PCI_1) || $PCI_1
+device pcie/1 pcie
+  dedicated 0,$BOTTOM
+endif
+
+else
+#
+# The TILExpress-36 card has one pcie interface.
+#
+if !defined(PCI_0) || $PCI_0
+device pcie/0 pcie
+  dedicated 0,$BOTTOM
+endif
+
+endif
+
+if !defined(XGBE_0) || $XGBE_0
+device xgbe/0 xgbe_ipp1_epp
+  dedicated $($W-2),$BOTTOM $($W-1),$BOTTOM
+  args $XGBE_ARGS
+endif
+
+endif
+
+
+if !defined(VMLINUX) || $VMLINUX
+
+#
+# Run vmlinux on all non-dedicated tiles.
+#
+
+ifndef ARGS
+define ARGS
+endif
+
+client vmlinux
+  args $ARGS $XARGS
+
+endif

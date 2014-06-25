@@ -1,0 +1,612 @@
+\documentclass[a4paper]{article}
+\usepackage{fullpage, caption, float, color, placeins, paralist, pdflscape, graphics, graphics, subcaption, listings}
+%%\usepackage{graphics, color, listings, verbatim, ulem, graphicx, multicol, paralist, placeins, caption, subcaption, multirow, array, pdflscape}
+%\usepackage{latexsym}
+\usepackage{amssymb, amsmath, nccmath}
+\usepackage[pdftex]{graphicx}
+
+\lstset{
+  language = c,
+  %% basicstyle = \small,
+  morekeywords= {symmetric_sm_channel_t, symmetric_udn_channel_t, asymmetric_sm_channel_t, asymmetric_udn_channel},
+  numbers = left,
+  breaklines,
+  captionpos = b,
+  frame = simple,
+  escapechar = ~,
+  mathescape
+}
+
+\newcommand{\subsystem}{$\Sigma1^{(n)}$}
+\newcommand{\insubsystem}{\Sigma1^{(n)}}
+\newcommand{\tile}{TILE\textit{Pro}64}
+\newcommand{\Tcalc}{$T_{\textrm{calc}}$}
+\newcommand{\inTcalc}{T_{\textrm{calc}}}
+\newcommand{\Ts}{$T_{\textrm{S}}^{(\textrm{n})}$}
+\newcommand{\inTs}{T_{\textrm{S}}^{(\textrm{n})}}
+\newcommand{\Ta}{$T_{\textrm{A}}$}
+\newcommand{\inTa}{T_{\textrm{A}}}
+
+\begin{document}
+
+\begin{itemize}
+\item \textbf{La misura del tempo di calcolo \`e corretta?} tale misura \`e stata presa sulla computazione su stream con un solo worker e i moduli generatore e collettore collegati tramite i canali. Implementare la computazione sequenziale non in stream e verificare che il tempo di calcolo sia vicino a quello misurato precedentemente.
+\item \textbf{Il tempo di calcolo per una matrice 56x56 \`e troppo alto?} 
+\item 
+\end{itemize}
+
+\begin{itemize}
+\item le misure sono prese male?
+\item \`e sbagliato il calcolo teorico del grado di parallelismo?
+\item la multicast non viene eseguita in parallelo? Il fatto che venga fatta la multicast nei workers, se non si sovrappongono le comunicazioni al calcolo, anche se sono di grana fine non servono a nulla. Il tempo di servizio ideale \`e 2 volte il tempo di comunicazione ma i worker non vanno in parallelo, quell'albero l\`i con queste macchine non fa nulla, \`e equivalente all'implementazione lineare.
+\end{itemize}
+
+\newpage
+
+\section{Descrizione dell'applicazione}
+\`E stata realizzata una applicazione sul calcolo del prodotto matrice per vettore. La computazione considerata \`e su stream, gli elementi dello stream sono le matrici su cui effettuare il calcolo, mentre il vettore rimane costante per tutta l'esecuzione dell'applicazione. 
+L'implementazione scelta fa uso del paradigma Data Parallel, in particolare la forma \emph{Map}, in quanto ogni processo worker andr\`a ad eseguire un calcolo che \`e indipendente dall'attivit\`a degli altri processi. Si \`e scelto il partizionamento delle matrici per riga. 
+Per realizzare le comunicazioni vengono usati i canali del supporto fornito, quindi si ha lo scambio dei puntatori alle strutture dati condivise. L'applicazione risulta seguire lo schema \emph{multicast}-\emph{compute}-\emph{gather} in quanto per ogni matrice dello stream si eseguono le seguenti tre fasi: 
+\begin{compactenum}[\itshape a~\upshape)] 
+\item la distribuzione del riferimento alla matrice corrente tra i processi worker, \`e compito di ogni worker effettuare il calcolo nella propria partizione della matrice, 
+\item il calcolo dei risultati parziali in ciascun worker, 
+\item la raccolta di tutti i risultati parziali dell'elemento.
+\end{compactenum}
+La comunicazione collettiva \emph{multicast} \`e implementata con una struttra ad albero binario mappato nell'insieme dei processi worker, le comunicazioni che costituiscono l'albero sono implementate per mezzo dei canali simmetrici offerti dal supporto; l'altra comunicazione collettiva, la \emph{gather}, viene implementata per mezzo del canale asimmetrico in ingresso fornito dal supporto. \\
+L'applicazione \`e fittizia, nel senso che non esistono dispositivi che generino e collezionino lo stream, per questo motivo l'applicazione \`e costituita, oltre che dai processi che realizzano la \emph{map}, da altri due processi che, rispettivamente, generano e collezionano gli elementi dello stream. 
+Tali due processi comunicano con il sottositema dei workers (\subsystem) per mezzo dei canali del supporto: il processo generatore \`e collegato tramite un canale simmetrico al worker radice dell'albero multicast, ogni processo worker \`e collegato al processo collettore per mezzo di un canale asimmetrico.
+
+Riassumendo, ogni processo worker fa uso di 4 canali di comunicazione: 
+\begin{asparaitem}
+\item tre sono simmetrici e trasportano gli elementi dello stream, uno dei quali \`e in ingresso dal processo padre nell'albero della multicast, gli altri due sono in uscita verso i processi radice dei due sottalberi della multicast, 
+\item il quarto canale \`e asimmetrico in ingresso ed \`e usato in scrittura, per la comunicazione del risultato parziale al processo collezionatore.
+\end{asparaitem}
+\`E quindi possibile l'uso del supporto alle comunicazioni che fa uso della UDN in quanto, per ogni processo, il numero di canali non supera il numero di code hardware.
+
+\section{Analisi delle prestazioni}
+Di seguito viene descritta una breve analisi delle prestazioni attese dal benchmark. Dato che la frequenza dello stream \`e arbitraria, la stima del tempo di servizio del \emph{map} permette di avere un primo dimensionamento del tempo di interarrivo, per diverse dimensioni dei dati, in modo tale da poter effettuare le prime misure dell'applicazione. Nella sezione successiva sono quindi proposte le misure del tempo di completamento dello stream e del tempo di servizio di \subsystem.
+
+La macchina \tile\ non dispone di processori di comunicazione, ne segue che le latenze di comunicazione dei canali sono pagate completamente nel tempo di servizio dei processi worker del sottosistema \subsystem. Si caratterizza perci\`o il tempo di servizio \emph{ideale} ed \emph{effettivo} del sottosistema \emph{map} come segue:
+%%\begin{flalign*}
+\begin{fleqn}[0pt]
+\[ T_{\Sigma1\_\textrm{id}}^{(n)} \; = \; T_S^{(n)} \; = \; T_{\textrm{multicast}} + \frac{T_{\textrm{cacl}}}{n} + T_{\textrm{gather}} \; = \; 2 \cdot T_{\textrm{sym\_send}} + \frac{T_{\textrm{cacl}}}{n} + T_{\textrm{asymin\_send}} \; = \; \Delta + \frac{T_{\textrm{cacl}}}{n} \]
+\[ T_{\Sigma1}^{(n)} \; = \max(\{ T_A , \; T_S^{(n)} \}) \]
+\end{fleqn}
+\\
+Dove \Tcalc\ \`e il tempo medio impiegato per il calcolo della computazione sequenziale, ovvero il calcolo di una moltiplicazione matrice per vettore, e $n$ \`e il grado di parallelismo dell'applicazione, inteso come il numero dei processi worker. Il rapporto tra \Tcalc\ e $n$ esprime il tempo di servizio \emph{ideale} di un processo worker scollegato dallo stream. Si \`e indicato con $\Delta$ la somma dei tempi spesi nelle comunicazioni da parte di un worker, tale latenza non \`e sovrapposta al tempo di calcolo nei processi worker. 
+
+Se \`e noto il valore del \Tcalc\ e di $\Delta$ allora per un generico tempo di interarrivo si ricava il grado di parallelismo ottimo, ovvero il minor grado di parallelismo che massimizza l'efficienza fornendo un fattore di utilizzazione unitario del sottosistema \subsystem:
+\begin{fleqn}[0pt]
+\[ n_{\textrm{opt}} \; = \; \min(\{ n \in \mathbb{N} \; | \; T_S^{(n)} \le T_A \}) \; = \; \Bigg\lceil \frac{ T_{\textrm{calc}}}{T_A - \Delta} \Bigg\rceil  \]
+%% \[ T_A \ge \Delta \quad \Rightarrow \quad (\exists \; n \in \mathbb{N} \; | \; T_S^{(ln)} \le T_A ) \]
+\end{fleqn}
+Dato che il tempo di interarrivo non \`e definito a priori ma \`e arbitrario, da tale formula \`e possibile ricavare il tempo di interarrivo uguale al tempo di servizio del \emph{map} con il massimo grado di parallelismo esplicitabile dall'architettura.
+
+\begin{table}[!t]
+  \centering
+  \begin{tabular}{|l|r|r|}
+    \hline
+    \emph{Matrix Size} & $T_{\textrm{calc}}$ ($\mu s$) & $T_{\textrm{calc}}$ (\emph{$\tau$}) \\
+    \hline
+    %% f = 864.583 Mhz 
+    %% t = 1/864.583 microsec = 1.156626 nanosec    
+    56x56 & 85.997340 & 74351.900000 \\
+    168x128 & 848.096504 & 733250.424000 \\
+    280x280 & 2360.060404 & 2040469.784000 \\
+    %% 56x56 & 92.933357 & 80348.667200  \\ %1361,8418169491525
+    %% 168x168 & 837.657488 & 724225.020400 \\ %12275,000338983051
+    %% 280x280 & 2344.539131 & 2027050.344400 \\ %34356,785498305085
+    \hline
+  \end{tabular}
+  \caption{Tempi di calcolo della computazione sequenziale al variare della dimensione della matrice}
+  \label{tab:Tcalc}
+\end{table}
+
+\begin{table}[!b]
+  \begin{subtable}[b]{.5\textwidth}
+    \begin{tabular}{|l|r|}
+      \hline
+      \emph{Canale} & \emph{Lcom ($\tau$)}\\
+      \hline
+      \verb+ch_sym_udn+ & 55.722760 \\
+      \verb+ch_sym_sm_rdyack+ & 155.377520 \\
+      \verb+ch_asymin_udn+ & 69.509710 \\
+      \verb+ch_asymin_sm+ & 170.285120 \\
+      \verb+ch_asymin_sm_all+ & 414.157690  \\
+      \hline
+    \end{tabular}
+    %% \caption{Misurazioni effettuate con l'applicazione ``ping-pong'', $10^4$ scambi e i procEssi allocati a distanza di 14 hops nella mesh.}
+  \end{subtable}
+  \hspace{4ex}
+  \begin{subtable}[b]{.5\textwidth}
+    \begin{tabular}{|l|r|}
+      \hline
+      \emph{Canali usati} & $T_\Delta (\tau)$ \\
+      \hline
+      UDN only & 180.95523 \\
+      SM only & 481.04016 \\
+      SM only with all & 724.91273 \\
+      \hline
+    \end{tabular}
+    %% \caption{Valori del Delta che costituisce il tempo di servizio ideale del sottosistema dei workers}
+  \end{subtable}
+  \caption{Misure delle latenze dei canali di comunicazione rilevate con l'applicazione ``ping-pong'', nella quale i due processi sono eseguiti in due tile con distanza massima nella mesh}
+  \label{tab:ch_and_delta}
+\end{table}
+
+Si pone quindi il problema di stimare il tempo di calcolo e il valore di $\Delta$. 
+\begin{asparaitem}
+\item Il $T_{\textrm{calc}}$ viene stimato misurando il tempo medio impiegato per eseguire una moltiplicazione matrice per vettore in un singolo tile della macchina. I risultati di tale misura per dimensioni diverse della matrice sono mostrate in Tabella \ref{tab:Tcalc}.
+\item Il valore di $\Delta$ pu\`o essere fornito in prima approssimazione dalle misure delle latenze di comunicazione effettuate con l'applicazione ``ping-pong'' per le due implementazioni dei canali. I risultati di tale misura sono riassunti nella Tabella \ref{tab:ch_and_delta}.
+\end{asparaitem}
+Si osserva che le misure di tali parametri sono approssimazioni ottimistiche, \`e infatti prevedibile che durante l'esecuzione dell'applicazione \emph{map} sia il tempo di calcolo dei worker che le latenze di comunicazione siano superiori ai valori stimati per mezzo delle applicazioni di misurazione, le quali usano un numero minimale di processi. Per la misura del \Tcalc\ viene eseguito un unico processo, per la misura delle latenze di comunicazione vengono eseguiti due processi che si scambiano messaggi usando il supporto fornito, in entrambi i casi le misure sono prese con un numero di conflitti minimo sia nelle reti di interconnessione sia alle memorie cache e ai controllori della memoria principale. Durante l'esecuzione della \emph{map} i processi in gioco possono essere molti fino al massimo numero di processori utilizzabili nella macchina, ne segue un aumento dei conflitti alle reti e alle memorie rispetto a quelli che si verificano nei programmi di misurazione e ci\`o introduce overheads sia nel tempo di calcolo effettivo dei workers che nelle latenze di comunicazione.
+
+Si calcola il tempo di servizio ideale con il grado di parallelismo massimo, $N = 59$, $\inTs = \frac{\inTcalc}{n} + \Delta$.
+
+\begin{verbatim}
+74352/59 + 181 = 1441  -> 4000
+74352/59 + 481 = 1741  -> 7000
+74352/59 + 725 = 1985
+
+733250/59 + 181  = 12428 + 181 = 12609  -> 20000
+                   12428 + 481 = 12909  -> 20000
+
+2040470/59 + 181 = 34584 + 181 = 34765  -> 50000
+\end{verbatim}
+
+%% n = Tcalc / (Ta - D)
+%% Ts = Tcalc/n + D
+%% Tcalc/n + D = Ta
+
+%% \begin{table}[!h]
+%%   \begin{tabular}{|l|r|r|}
+%%     \hline
+%%     %% $T_A$ & $n_{\textrm{opt}_{\textrm{UDN}}}$ & $n_{\textrm{opt}_{\textrm{SM}}}$\\
+%%     $T_A$ & $n_{\textrm{opt\_UDN}}$ & $n_{\textrm{opt\_SM}}$\\
+%%     \hline
+%%     181 & inifinito & non esiste\\
+%%     362 & 444 & non esiste \\
+%%     725 & 148 & 329 \\
+%%     1450 & 63 & 82 \\
+%%     2000 & 44 & 52 \\
+%%     \hline
+%%   \end{tabular}
+%%   \caption{Valori di grado di parallelismo ottimo per la matrice di dimensione 56x56}
+%%   \label{tab:nopt}
+%% \end{table}
+
+\newpage 
+\FloatBarrier
+\section{Misure sul benchmark}
+\subsection{Variazione del tempo di interarrivo}
+Di seguito vengono proposti i grafici della scalabilit\`a e del tempo di servizio del benchmark al variare del tempo di interarrivo. I parametri del benchmark che rimangono fissati sono l'implementazione dei canali usata, la dimensione delle matrici e la lunghezza dello stream. Viene proposto due diversi usi delle implementazioni: il solo utilizzo del supporto UDN e il solo utilizzo del supporto Memoria Condivisa.
+
+\begin{figure}[!h]
+  \caption{Grafici di scalabilit\`a al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_00_500_selected_56.tex}}
+      \caption{Scalabilita dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_00_500_selected_168.tex}}
+      \caption{Scalabilita dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_00_500_selected_280.tex}}
+      \caption{Scalabilita dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_11_500_selected_56.tex}}
+      \caption{Scalabilita dell implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_11_500_selected_168.tex}}
+      \caption{Scalabilita dell implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_11_500_selected_280.tex}}
+      \caption{Scalabilita dell implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+\FloatBarrier 
+\newpage
+\section{Confronto tra le due soulzioni con \subsystem\ collo di bottiglia}
+Di seguito viene proposto il confronto della scalabilit\`a del tempo di completamento del benchmark con l'uso delle due diverse soluzioni, il tempo di interarrivo \`e tale per cui il sottosistema \subsystem \`e collo di bottiglia.
+
+
+%% \newpage
+
+%% TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP
+
+%% \begin{figure}
+%%   \begin{subfigure}[b]{\textwidth}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_00_500_all_56.tex}}
+%%   \end{subfigure}
+%%   ~
+%%   \begin{subfigure}[b]{\textwidth}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot1_nogatherInt_00_500_all_280.tex}}
+%%   \end{subfigure}
+%% \end{figure}
+
+\newpage
+%% \begin{figure}[!h]
+%%   \begin{subfigure}[b]{.5\textwidth}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_56.tex}}
+%%   \end{subfigure}
+%%   \vspace{5ex}
+%%   \begin{subfigure}[b]{.5\textwidth}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_168.tex}}
+%%   \end{subfigure}
+%%   \begin{subfigure}[b]{.5\textwidth}
+%%     \centering
+%%     \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_280.tex}}
+%%   \end{subfigure}
+%% \end{figure}
+\begin{figure}[!h]
+  \centering
+  \begin{subfigure}[b]{.333\textheight}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_56.tex}}
+    \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=56}
+  \end{subfigure}
+  \vfill
+  %%\vspace{5ex}
+  \begin{subfigure}[b]{.333\textheight}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_168.tex}}
+    \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=168}
+  \end{subfigure}
+  \vfill
+  \begin{subfigure}[b]{.333\textheight}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_181_280.tex}}
+    \caption{Confronto della scalabilita nelle diverse implementazioni, Ta=181, M=280}
+  \end{subfigure}
+\end{figure}
+
+\newpage
+\FloatBarrier
+\section{}
+
+\begin{figure}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot4_nogatherInt_00_500_181_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=181, canali UDN e dati Int}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot4_nogatherFloat_00_500_181_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=181, canali UDN e dati Float}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot4_nogatherInt_11_500_181_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=181, canali SM e dati Int}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \resizebox{\columnwidth}{!}{\input{plot4_nogatherFloat_11_500_181_all.tex}}
+    \caption{Tempi di calcolo di una singola Row $\cdot$ Col con Ta=181, canali SM e dati Float}
+  \end{subfigure}
+\end{figure}
+
+\begin{lstlisting}
+#define DONT_MOVE(EXP) \
+  atomic_compiler_barrier(); \
+  EXP; \
+  atomic_compiler_barrier(); 
+
+generator_task(...) {
+  ...
+  pthread_barrier_wait(...);
+  DONT_MOVE(start_Tc = get_clock_cycle());
+  for (i=0; i<m; i++) {
+    a = get_clock_cycle();
+    sym_send(ch_out);
+    while (get_clock_cycle() - a < Ta) 
+      ;
+  }
+  ...
+}
+
+worker_task(...) {
+  ...
+  pthread_barrier_wait(...);
+  for (i=0; i<m; i++) {
+    A = (int *)sym_receive(ch_in);
+    DONT_MOVE(
+      start_servicet = stop_servicet;
+      stop_servicet = get_clock_cycle();
+      sum_servicet = stop_servicet - start_servicet;
+    );
+    DONT_MOVE(start_multicast = get_clock_cycle());
+    if (ch_left != NULL) sym_send(ch_left, A);
+    if (ch_right != NULL) sym_send(ch_right, A);
+    DONT_MOVE(stop_multicast = get_clock_cycle(); ...);
+    for (j=0; j<g; j++) {
+      C[j*rank] = 0;
+      for (k=0; k<M; k++) 
+        C[j*rank] = *(A+j*M+k) * B[k] + C[j*rank];
+    }
+    asymin_send(ch_out, C);
+  }
+  ...
+}
+
+collector_task(...) {
+  ...
+  pthread_barrier_wait(...);
+  for (i=0; i<m; i++) {
+    (void)asymin_receive(ch_in);
+  }
+  DONT_MOVE(stop_Tc = get_clock_cycle());
+  ...
+}
+\end{lstlisting}
+
+\subsection{Tempo di completamento e sua scalabilit\`a}
+
+\begin{figure}[!h]
+  \caption{Grafici del tempo di completamento al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_00_500_selected_56.tex}}
+      \caption{Tempo di completamento dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_00_500_selected_168.tex}}
+      \caption{Tempo di completamento dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_00_500_selected_280.tex}}
+      \caption{Tempo di completamento dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_11_500_selected_56.tex}}
+      \caption{Tempo di completamento dell implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_11_500_selected_168.tex}}
+      \caption{Tempo di completamento dell implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1tc-log_nogatherInt_11_500_selected_280.tex}}
+      \caption{Tempo di completamento dell implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+
+\begin{figure}[!h]
+  \caption{Grafici del tempo di servizio al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_00_500_selected_56.tex}}
+      \caption{Tempo di servizio dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_00_500_selected_168.tex}}
+      \caption{Tempo di servizio dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_00_500_selected_280.tex}}
+      \caption{Tempo di servizio dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_11_500_selected_56.tex}}
+      \caption{Tempo di servizio dell implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_11_500_selected_168.tex}}
+      \caption{Tempo di servizio dell implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1st-log_nogatherInt_11_500_selected_280.tex}}
+      \caption{Tempo di servizio dell implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+\begin{figure}[!h]
+  \caption{Grafici del tempo di multicast al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_56.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_168.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_00_500_selected_280.tex}}
+      \caption{tempo di multicast dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_56.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_168.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot1mlt_nogatherInt_11_500_selected_280.tex}}
+      \caption{tempo di multicast dell implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+
+\end{document}

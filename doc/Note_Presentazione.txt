@@ -1,0 +1,7 @@
+Prima di tutto
+* Descriviamo quale \`e lo scopo del tirocinio, ovvero
+  - indagare sull'uso di reti di interconnessione on chip per realizzare un supporto alle comunicazioni ottimizzato
+  - sono state realizzate due versioni del supporto, una usa la memoria condivisa, l'altra la NoC messa a disposizione dalla macchina
+  - questo \`e un primo esperimento, realizzato sulla macchina Tilera TilePro64
+    > 
+    

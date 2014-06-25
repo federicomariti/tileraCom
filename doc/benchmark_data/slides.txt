@@ -1,0 +1,5 @@
+./script.sh comp-T-s
+./script.sh comp-T-s
+./script.sh Tmult-nb-UDN-SM
+./script.sh T-UDN-SM
+./script.sh rowCalcT

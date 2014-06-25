@@ -1,0 +1,63 @@
+\documentclass{beamer}
+\usepackage[italian]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[lighttt]{lmodern}
+\usepackage{verbatim, listings}
+
+
+\newcommand{\tile}{TILE\textit{Pro}64}
+\newcommand{\musec}{$\mu \textrm{sec}$}
+
+\usetheme{Malmoe} %simple
+
+\begin{document}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (1)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec
+  \item Dimensione delle matrici 56x56
+  \item Tempo di servizio migliore UDN 6.177 \musec
+  \item Tempo di servizio migliore SM 8.735 \musec
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_4000_56_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_56_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (2)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec %23.133 \musec
+  \item Dimensione delle matrici 168x168
+  \item Tempo di servizio migliore UDN 25.092 \musec
+  \item Tempo di servizio migliore SM 27.810 \musec  
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_20000_168_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_168_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Confronto: tempo di servizio (3)}
+  \begin{itemize}
+  \item Tempo di interarrivo 4.627 \musec %57.831 \musec
+  \item Dimensione delle matrici 280x280
+  \item Tempo di servizio migliore UDN 62.943 \musec
+  \item Tempo di servizio migliore SM 63.893 \musec  
+  \end{itemize}
+  \begin{columns}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-comp-T-s_nogatherInt_selected_500_50000_280_slide.tex}}
+    \column{.5\columnwidth}
+    \resizebox{\columnwidth}{!}{\input{plot-T-UDN-SM_nogatherInt_selected_500_selected_280_slide.tex}}
+  \end{columns}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,40 @@
+SLIDE 1: Contesto del lavoro \\
+Nell'ambito di architettura Chip MultiProcessor \`e comune l'uso della memoria condivisa per la realizzazioen di supporti a programmi paralleli.
+* Esempi meccanismi base per esprimere programmi paralleli
+* Degradazioni della memoria condivisa
+* Significativit\`a di queste degradazioni con macchine altamente parallele
+
+SLIDE 2: Obiettivi del lavoro \\
+Il lavoro svolto riguarda la realizzazione di un supporto alle comunicazione tra processi che minimizzi le degradazioni sovute all'uso della memoria condivisa.
+* comunicazione efficiente \`e necessaria in computazioni di grana fine, ovvero dove il calcolo su un dato in ingresso \`e mediamente breve e la frequenza di arrivo di nuovi dati \`e elevata (ed \`e necessario eseguire con frequenza elevata calcoli su nuovi dati), questo tipo di computazioni sono chiamate data stream processing
+* Viene considerato un nuovo approccio
+
+SLIDE 3: Esempi di macchine CMP \\
+Parliamo ora di caratteristiche presenti nelle nuove macchine CMP altamente parallele. \`E comune l'uso/Queste dispongono di reti di interconnessione multiple, scalabili con il numero di core, e dediacate a scopi disgiunti. Prendiamo ad esempio due macchine, il Tilera e il NetLogic, entrambe mettono a disposizione dell'utente una rete di interconnessione. ... In entrambi i casi queste reti hanno una buona caratteristica di scalabilit\`a rispetto al numero dei core presenti.
+
+%Recentemente macchine CMP con elevato parallelismo realizzano reti di interconnessione multiple, con caratteristiche di scalabilit\`a e dedicate a scopi specifici.
+%* Si prendono in esempio due macchine, altamente parallele e che mettono a disp. dell'utente una rete di interconnessione
+
+SLIDE 4: Esempi di forme di comunicazione - computazioni data stream processing \\
+La realizzazione di forme di parallelismo prevede l'uso di certi meccanismi di comunicazione. Il nostro supporto non \`e finalizzato nel caoprire tutti i possibili casi, piuttosto si \`e realizzato un insieme minimale di forme di comunicazione. Presentiamo ad esempio due paradigmi paralleli tipici e di uso comune: il data parallel map, e il farm. ...
+
+Il supporto alle forme di comunicazione realizzato \`e un insieme minimo delle forme di comunicazione necessarie per realizzare i pi\`u comuni paradigmi paralleli
+* prendiamo come esempio due forme parallele operanti su stream molto frequenti: la data parallel map e la farm
+* nella map si fa uso di una comunicazione simmetrica tra processi per realizzare la distribuzione delle partizioni ai worker, in questo caso realizzata con una struttura ad albero mappata nei worker; tale forma di comunicazione \`e usata anche nella farm per realizzare la distribuzione di un elemento dello stream a un worker. In entrambi i paradigmi abbiamo l'uso di una comunicazione asimmetrica molti-a-uno per realizzare il collezionamento dei risultati, parziali nella Map, totali nella farm.
+
+SLIDE 5: Reti di interconnessione del Tilera TilePro64 \\
+La macchina utilizzata \`e il tilera tilepro64, questa dispone di 64 core collegati per mezzo di reti a maglia bidimensionale. queste reti collegano anche i core ai controllori di memoria e alle unit\`a di ingresso uscita. un core della macchina \`e composto da cpu e unit\`a di interfacciamento alle reti, la cpu \`e composta da due livelli di cache e un processore vliw. le reti pi\`u significative per i nostri scopi sono mdn, cdn e udn la quale \`e messa a disposizione dell'utente, come detto precedentemente.
+
+SLIDE 6: I due approcci realizzativi del supporto alle comunicazioni \\
+Descriviamo le differenze dei due approcci realizzativi del supporto alle comunicazioni. Nella figura a sinistra abbiamo l'uso della rete di interconnessione UDN, \`e mostrata una comunicazione simmetrica tra due processori eseguiti in due differenti core. L'implementazione della comunicazione \`e caratterizzata dallo scambio di messaggi firmware nella rete UDN, sia per la sincronizzazione dei processi che per la trasmissione dei messaggi. Il secondo approccio \`e mostrato a destra, viene rappresentato nuovamente la comunicazione simmetrica tra due processsi, in basso sono rappresentati i due core comunicanti, in alto un controllore di memoria condivisa. La realizzazione della comunicazione fa uso di una struttura dati allocata in memoria e condivisa tra i due processi. sia la sincronizzazione che la trasmissione dei messaggi avvengono con letture/scritture ai campi della struttura dati. La gestione della coerenza cache implementata in modo automatico dall'architettura causa il trasferimento del blocco contenente la struttura dati durante le comunicazioni.
+
+
+SLIDE 7: Misura della Latenza di comunicazione \\ 
+SLIDE 8: Misura latenza canale simmetrico\\
+Viene propesta la misura dei canali asimmetrici, anche in questo caso \`e usato il programma ping-pong con  le comunicazioni simmetriche realizzate per mezzo dei canali asimmetrici. Vengono proposte le misure dell'implemn su UDN e su l'implementazione con memoria condivisa considerata migliore sul test eseguito con i canali simmetrici, ovvero l'implementaizone che fa uso di configurazione implicita della coerenza della cache. si sono considerati due scenari per la misura del canali su memoria condivisa: uno con un singolo processo mittente, l'altro con il massimo numero di processi mittenti. ci\`o \`e motivato dal fatto che nella implementazione della primitiva di ricezione l'attesa \`e svolta controllando ciclicamente la presenza di nuovi messaggi nei mittenti. 
+
+SLIDE 9: Misura latenza canale asimmetrio\\
+SLIDE 10: Benchmark: prodotto matrice-vettore\\
+SLIDE 11: Confronto: tempo di servizio sottosistema parallelo\\
+SLIDE 12: Confronto: tempo di servizio multicast\\
+SLIDE 13: Confronto: tempo di calcolo di un singolo prodotto scalare\\

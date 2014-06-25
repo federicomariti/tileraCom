@@ -1,0 +1,42 @@
+Nella sezione \ref{sct:specifica_meccanismi} sono stati definiti i meccanismi di comunicazione considerati ed \`e stata fornita la descrizione delle implementazioni degli stessi sfruttando i due supporti architetturali. Per quanto riguarda l'uso di UDN abbiamo una sola implementazione per il canale simmetrico e per il canale asimmetrico che fa uso esclusivo della UDN, questa \`e l'implementazione che fornisce le migliori prestazioni che il supporto architetturale possa offrire. Per quanto riguarda la memoria condivisa invece si sono studiate pi\`u realizzazioni del canale simmetrico per quanto riguarda la massimizzazione della localit\`a delle informazioni del supporto in cache
+%% attraverso la configurazione esplicita dell'allocaizone 
+e l'uso di un diverso protocollo di comunicazione che non si serve del blocco di memoria. Per l'implementazione del canale asimmetrico con memoria condivisa si \`e adottata la soluzione pi\`u generica che fa uso del protocollo Rdy-Ack e che alloca esplicitamente il supporto in cache. Le varie implementazioni, con i rispettivi nomi, sono riassunte nella Tabella \ref{tab:implementazioni}.
+%% mentre si hanno pi\`u implementazioni che usano la memoria condivisa. 
+%% Le due prinicpali implementazioni con memoria condivisa adottano il protocollo Rdy-Ack: la prima fa uso della configurazione predefinita di allocazione in cache, mentre la seconda impiega una gestione esplicita dell'allocazione in cache delle informazioni del supporto che massimizza la localit\`a. La terza implementazione \`e quella che utilizza il protocollo alternativo Null-Ack che fa uso di un valore particolare dei messaggi con il quale realizza l'evento di Rdy. Le varie implementazioni con i rispettivi nomi sono riassunte nella Tabella \ref{tab:implementazioni}. 
+
+La prima comparazione delle varie realizzazioni viene effettuata sulla latenza di comunicazione in assenza di conflitti sia sulle reti di interconessione che sulla memoria condivisa. Tale tipo di test \`e utile per:
+%% Il primo test effettuato sui canali \`e la misurazione della latenza di comunicazione in assenza di confilitti, sia sulle reti di interconnessione che sulla memoria condivisa. Tale tipo di test offre i seguenti risultati:
+\begin{itemize}
+\item il confronto tra le varie implementazioni con memoria condivisa, in particolare si stabilisce di quanto \`e migliore l'implementazione con gestione esplicita dell'allocazione in cache rispetto a quella predefinita, e che di che entit\`a \`e la degradazione indotta dall'uso dell'istruzione di \emph{memory fence} necessaria nel protocollo Rdy-Ack;
+\item il confronto tra le implementazioni che fanno uso dei due diversi supporti architetturali, ovvero di quanto \`e ``migliore'' l'implementazione che fa uso di UDN rispetto all'implementazione che fa uso di memoria condivisa.
+\end{itemize}
+
+
+\begin{table}[!b]
+  \centering
+  \begin{tabular}{ |m{15ex}|m{20ex}|m{26ex}| }
+    \hline
+    \textit{Supporto architetturale} & \textit{Nome dei canali di comunicazione} & \textit{Descrizione} \\
+    \hline
+    \multirow{6}{15ex}{Memoria Condivisa}  & \verb+ch_sym_sm_no+ & Utilizzo non ottimizzato della cache \\
+    \cline{2-3}
+    & \verb+ch_sym_sm+ & \multirow{3}{26ex}{Allocazione con massima localit\`a del supporto in cache} \\
+    & \verb+ch_asymin_sm+ & \\
+    & \verb+ch_asymin_sm_all+ & \\
+    \cline{2-3}
+    & \verb+ch_sym_sm_nullack+ & Utilizzo del protocollo di comunicazione Null-Ack \\
+    \hline
+    \multirow{2}{*}{UDN} & \verb+ch_sym_udn+ & \multirow{2}{26ex}{Uso esclusivo della rete di interconnessione} \\
+    & \verb+ch_asymin_udn+ & \\
+    \hline
+  \end{tabular}
+  \caption{Canali di comunicazione implementati i due supporti architetturali}
+  \label{tab:implementazioni}
+\end{table}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[scale=.5]{schema_metering.pdf}
+  \caption{Rappresentazione della sequenza di azioni svolte dai due processi dell'applicazione di misurazione}
+  \label{fig:schema_metering}
+\end{figure}

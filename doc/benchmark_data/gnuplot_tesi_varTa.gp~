@@ -1,0 +1,5 @@
+offset = 0
+set grid
+set linetype 1+offset lw 3 ps 1.25 lc rgb red1
+set linetype 2+offset lw 3 ps 1.25 lc rgb red2
+set linetype 3+offset lw 3 ps 1.25 lc rgb red3

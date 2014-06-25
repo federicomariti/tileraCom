@@ -1,0 +1,203 @@
+%% \FloatBarrier
+%% \subsection{Map service time} 
+
+%% \begin{lstlisting}[morekeywords={servicet_stop, servicet_start, servicet_sum}]
+%% void * generator_task(void *args...) {
+%%   ...
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     a = get_clock_cycle();
+%%     sym_send(ch_out, A_set[i]);
+%%     while (get_clock_cycle() - a < Ta) 
+%%       ;
+%%   }
+%%   ...
+%% }
+
+%% void * worker_task(void *args...) {
+%%   ...
+%%   servicet_stop = 0;
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     A = (int *)sym_receive(ch_in);
+%%     atomic_compiler_barrier(); 
+%%     if (rank == 0) {
+%%       servicet_start = servicet_stop;
+%%       servicet_stop = get_clock_cycle();
+%%       if (servicet_start != 0)
+%%         servicet_sum += servicet_stop - servicet_start;
+%%     }
+%%     atomic_compiler_barrier(); 
+%%     if (ch_left != NULL) sym_send(ch_left, A);
+%%     if (ch_right != NULL) sym_send(ch_right, A);
+%%     for (j=0; j<g; j++) {
+%%       C[j*rank] = 0;
+%%       for (k=0; k<M; k++) 
+%%         C[j*rank] = *(A+j*M+k) * B[k] + C[j*rank];
+%%     }
+%%     asymin_send(ch_out, C);
+%%   }
+%%   if (rank == 0)
+%%     fprintf(output_file, ``%d %f\n'', n, (double)servicet_sum/m);
+%%   ...
+%% }
+
+%% void * collector_task(void *args...) {
+%%   ...
+%%   pthread_barrier_wait(...);
+%%   for (i=0; i<m; i++) {
+%%     (void)asymin_receive(ch_in);
+%%   }
+%%   ...
+%% }
+%% \end{lstlisting}
+
+
+\begin{figure}[p]
+  \caption{Grafici di scalabilit\`a del tempo di servizio dello stream al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_00_500_selected_56.tex}}
+      \caption{Scalabilit\`a dell'implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_00_500_selected_168.tex}}
+      \caption{Scalabilit\`a dell'implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_00_500_selected_280.tex}}
+      \caption{Scalabilit\`a dell'implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_11_500_selected_56.tex}}
+      \caption{Scalabilit\`a dell'implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_11_500_selected_168.tex}}
+      \caption{Scalabilit\`a dell'implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-T-s_nogatherInt_11_500_selected_280.tex}}
+      \caption{Scalabilit\`a dell'implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{figure}[p]
+  \caption{Grafici del tempo di servizio al variare del tempo di interarrivo}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+    \caption{Implementazione con solo UDN}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_00_500_selected_56.tex}}
+      \caption{Tempo di servizio dell'implementazione UDN con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_00_500_selected_168.tex}}
+      \caption{Tempo di servizio dell'implementazione UDN con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_00_500_selected_280.tex}}
+      \caption{Tempo di servizio dell'implementazione UDN con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_UDN_size280}
+    \end{subfigure}
+    \label{fig:allScalbility_UDN}
+  \end{subfigure}
+  \hspace{2ex}
+  \begin{subfigure}[b]{.5\columnwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Implementazione con solo SM}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_11_500_selected_56.tex}}
+      \caption{Tempo di servizio dell'implementazione SM con M=56 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size56}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_11_500_selected_168.tex}}
+      \caption{Tempo di servizio dell'implementazione SM con M=168 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size168}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}3}
+      \resizebox{\columnwidth}{!}{\input{plot-T_nogatherInt_11_500_selected_280.tex}}
+      \caption{Tempo di servizio dell'implementazione SM con M=280 al variare del tempo di interarrivo}
+      \label{fig:scalability_SM_size280}
+    \end{subfigure}
+    \label{fig:allscalability_SM}
+  \end{subfigure}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+

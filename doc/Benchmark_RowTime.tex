@@ -1,0 +1,50 @@
+\begin{figure}[!b]
+  \caption[Aumento del tempo di calcolo di un singolo prodotto scalare]{Fattore di variazione del tempo di calcolo di un singolo prodotto scalare: rapporto tra il tempo medio di calcolo di un singolo prodotto scalare nel calcolo di un worker della Map rispetto allo stesso tempo nel programma sequenziale. La Map \`e collo di bottiglia: $\inTa = 4.626 \microsec$.}
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Utilizzo di dati di tipo Intero}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_00_500_4000_all.tex}}
+      \caption{Utilizzo del supporto su UDN}
+      \label{fig:rowTime_int_udn}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherInt_11_500_4000_all.tex}}
+      \caption{Utilizzo del supporto su SM}
+      \label{fig:rowTime_int_sm}
+    \end{subfigure}
+    \label{fig:rowTime_int}
+  \end{subfigure}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \hspace{2ex}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \begin{subfigure}[b]{.5\textwidth}
+    \centering
+    \renewcommand\thesubfigure{\alph{subfigure}}
+    \caption{Utilizzo di dati di tipo Floating Point}
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}1}
+      \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_00_500_4000_all.tex}}
+      \caption{Utilizzo del supporto su UDN}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \addtocounter{subfigure}{-1}
+      \renewcommand\thesubfigure{\alph{subfigure}2}
+      \resizebox{\columnwidth}{!}{\input{plot-rowCalcT_nogatherFloat_11_500_4000_all.tex}}
+      \caption{Utilizzo del supporto su SM}
+    \end{subfigure}
+    \label{fig:rowTime_float}
+  \end{subfigure}
+  \label{fig:rowTime}
+\end{figure}

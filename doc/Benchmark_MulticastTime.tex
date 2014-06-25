@@ -1,0 +1,123 @@
+%% 6 GRAFICI DEL TEMPO DI SERVIZIO DELLA MULTICAST QUANDO LA MAP NON E` COLLO DI BOTTIGLIA. VARIA TA PER DIMENSIONE DATI FISSA PER UDN E PER SM
+%% POCO SIGNIFICATIVO
+%% \begin{figure}[p]
+%%   \caption{Grafici del tempo di multicast al variare del tempo di interarrivo}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     %% se vuoi spostare questa caption in fondo devi modificare anche i contatori!
+%%     \caption{Implementazione con solo UDN}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_UDN_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_UDN_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_00_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione UDN con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_UDN_size280}
+%%     \end{subfigure}
+%%     \label{fig:multicastTime_UDN}
+%%   \end{subfigure}
+%%   \hspace{2ex}
+%%   \begin{subfigure}[b]{.5\columnwidth}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}}
+%%     \caption{Implementazione con solo SM}
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}1}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_56.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=56 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_SM_size56}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}2}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_168.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=168 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_SM_size168}
+%%     \end{subfigure}
+%%     ~
+%%     \begin{subfigure}[b]{\textwidth}
+%%       \centering
+%%       \addtocounter{subfigure}{-1}
+%%       \renewcommand\thesubfigure{\alph{subfigure}3}
+%%       \resizebox{\columnwidth}{!}{\input{plot-Tmult-nb_nogatherInt_11_500_selected_280.tex}}
+%%       \caption{tempo di multicast dell implementazione SM con M=280 al variare del tempo di interarrivo}
+%%       \label{fig:multicastTime_SM_size280}
+%%     \end{subfigure}
+%%     \label{fig:multicastTime_SM}
+%%   \end{subfigure}
+%% \end{figure}
+
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \begin{figure}[p]
+%%   \centering
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}1}
+%%     \resizebox{\columnwidth}{!}{\input{plot-Tmult-UDN-SM_nogatherInt_selected_500_selected_56.tex}}
+%%   \end{subfigure}
+%%   \vfill
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}2}
+%%     \resizebox{\columnwidth}{!}{\input{plot-Tmult-UDN-SM_nogatherInt_selected_500_selected_168.tex}}
+%%   \end{subfigure}
+%%   \vfill
+%%   \begin{subfigure}[b]{.31\textheight}
+%%     \centering
+%%     \renewcommand\thesubfigure{\alph{subfigure}3}
+%%     \resizebox{\columnwidth}{!}{\input{plot-Tmult-UDN-SM_nogatherInt_selected_500_selected_280.tex}}
+%%   \end{subfigure}
+%% \end{figure}
+
+
+%% 3 GRAFICI: CONFRONTO DEL TEMPO DI SERVIZIO DELLA MULTICAST DELLE DUE IMPLEMENTAZINI CON UN CERTO TA PER IL QUALE LA MAP NON E` COLLO DI BOTTIGLIA. GRAFICI DIVERSI HANNO DIVERSA DIMENSIONE DI DATI. TEMPI IN MICROSECONDI
+\begin{figure}[p]
+  \caption[Tempi di servizio della multicast]{Confronto di uso dei due supporti nel tempo di servizio della multicast misurata sul primo worker quando la Map non \`e collo di bottiglia}
+  \centering
+%  \begin{subfigure}[b]{.31\textheight}
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \resizebox{.3\textheight}{!}{\input{plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_56.tex}}
+    \caption{Dimensione della matrice 56x56, $\inTa = 20\cdot10^3 \, \tau = 23.133 \, \microsec$}%4.626
+  \end{subfigure}
+  \vfill
+%  \begin{subfigure}[b]{.31\textheight}
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \resizebox{.3\textheight}{!}{\input{plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_168.tex}}
+    \caption{Dimensione della matrice 168x168, $\inTa = 150\cdot10^3 \,\tau = 173.494 \, \microsec$} %123.132 
+  \end{subfigure}
+  \vfill
+%  \begin{subfigure}[b]{.31\textheight}
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \resizebox{.3\textheight}{!}{\input{plot-Tmult-UDN-SM-millis_nogatherInt_selected_500_selected_280.tex}}
+    \caption{Dimensione della matrice 280x280, $\inTa = 250\cdot10^3 \,\tau = 289.157 \, \microsec$}%46.265 
+  \end{subfigure}
+  \label{fig:multicast}
+\end{figure}

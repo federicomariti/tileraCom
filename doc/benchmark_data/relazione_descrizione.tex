@@ -1,0 +1,19 @@
+\section{Descrizione dell'applicazione}
+\`E stata realizzata una applicazione sul calcolo del prodotto matrice per vettore. La computazione considerata \`e su stream, gli elementi dello stream sono le matrici su cui effettuare il calcolo, mentre il vettore rimane costante per tutta l'esecuzione dell'applicazione. 
+L'implementazione scelta fa uso del paradigma Data Parallel, in particolare la forma \emph{Map}, in quanto ogni processo worker andr\`a ad eseguire un calcolo che \`e indipendente dall'attivit\`a degli altri processi. Si \`e scelto il partizionamento delle matrici per riga. 
+Per realizzare le comunicazioni vengono usati i canali del supporto fornito, quindi si ha lo scambio dei puntatori alle strutture dati condivise. L'applicazione risulta seguire lo schema \emph{multicast}-\emph{compute}-\emph{gather} in quanto per ogni matrice dello stream si eseguono le seguenti tre fasi: 
+\begin{compactenum}[\itshape a~\upshape)] 
+\item la distribuzione del riferimento alla matrice corrente tra i processi worker, \`e compito di ogni worker effettuare il calcolo nella propria partizione della matrice, 
+\item il calcolo dei risultati parziali in ciascun worker, 
+\item la raccolta di tutti i risultati parziali dell'elemento.
+\end{compactenum}
+La comunicazione collettiva \emph{multicast} \`e implementata con una struttra ad albero binario mappato nell'insieme dei processi worker, le comunicazioni che costituiscono l'albero sono implementate per mezzo dei canali simmetrici offerti dal supporto; l'altra comunicazione collettiva, la \emph{gather}, viene implementata per mezzo del canale asimmetrico in ingresso fornito dal supporto. \\
+L'applicazione \`e fittizia, nel senso che non esistono dispositivi che generino e collezionino lo stream, per questo motivo l'applicazione \`e costituita, oltre che dai processi che realizzano la \emph{map}, da altri due processi che, rispettivamente, generano e collezionano gli elementi dello stream. 
+Tali due processi comunicano con il sottositema dei workers (\subsystem) per mezzo dei canali del supporto: il processo generatore \`e collegato tramite un canale simmetrico al worker radice dell'albero multicast, ogni processo worker \`e collegato al processo collettore per mezzo di un canale asimmetrico.
+
+Riassumendo, ogni processo worker fa uso di 4 canali di comunicazione: 
+\begin{asparaitem}
+\item tre sono simmetrici e trasportano gli elementi dello stream, uno dei quali \`e in ingresso dal processo padre nell'albero della multicast, gli altri due sono in uscita verso i processi radice dei due sottalberi della multicast, 
+\item il quarto canale \`e asimmetrico in ingresso ed \`e usato in scrittura, per la comunicazione del risultato parziale al processo collezionatore.
+\end{asparaitem}
+\`E quindi possibile l'uso del supporto alle comunicazioni che fa uso della UDN in quanto, per ogni processo, il numero di canali non supera il numero di code hardware.

@@ -1,0 +1,105 @@
+\documentclass[a4paper]{article}
+\usepackage{fullpage, caption, float, color, placeins, paralist, pdflscape, graphics, graphics, subcaption, listings}
+%%\usepackage{graphics, color, listings, verbatim, ulem, graphicx, multicol, paralist, placeins, caption, subcaption, multirow, array, pdflscape}
+%\usepackage{latexsym}
+\usepackage{amssymb, amsmath, nccmath}
+\usepackage[pdftex]{graphicx}
+
+\renewcommand{\ttdefault}{pcr}
+
+\lstdefinestyle{data}{
+  basicstyle = {\ttfamily},
+  frame = single,
+  breaklines = true, 
+  captionpos = b, 
+  numbers = none
+}
+
+\lstdefinestyle{simpleC}{
+  language = c,
+  basicstyle = {\ttfamily},
+  numbers = left,
+  numberstyle = \tiny,
+  stepnumber = 1,
+  %% numbersep = 5pt,
+  frame = simple,
+  breaklines = true, 
+  %% belowcaptionskip = 1\baselineskip,
+  captionpos = b, 
+  showtabs = false,
+  showspaces = false,
+  showstringspaces = false,
+  %% keywordstyle =
+  %% commentstyle =
+  %% identifierstyle =
+  %% stringstyle =
+  escapechar = ~,
+  mathescape = true
+}
+
+\lstset{ style = simpleC }
+
+\newcommand{\subsystem}{$\Sigma1^{(n)}$}
+\newcommand{\insubsystem}{\Sigma1^{(n)}}
+\newcommand{\tile}{TILE\textit{Pro}64}
+\newcommand{\Tcalc}{$T_{\textrm{calc}}$}
+\newcommand{\inTcalc}{T_{\textrm{calc}}}
+\newcommand{\Ts}{$T_{\textrm{S}}^{(\textrm{n})}$}
+\newcommand{\inTs}{T_{\textrm{S}}^{(\textrm{n})}}
+\newcommand{\Ta}{$T_{\textrm{A}}$}
+\newcommand{\inTa}{T_{\textrm{A}}}
+
+\begin{document}
+
+%% \tableofcontents
+%%\newpage
+
+
+%% \input{relazione_descrizione}
+
+%% \input{relazione_analisi}
+
+
+%% \newpage 
+%% \FloatBarrier
+%% \section{Misure sul benchmark}
+
+\input{relazione_complTime}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\input{relazione_serviceTime}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\input{relazione_multicastTime}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\input{relazione_confrontoImpl}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\input{relazione_calcRow}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \newpage
+%% \input{relazione_data}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% \newpage
+
+%% \FloatBarrier
+%% \begin{figure}[p]
+%%   \centering
+%%   \resizebox{\columnwidth}{!}{\input{plot3_nogatherInt_all_500_4000_56.tex}}
+%% \end{figure}
+
+\end{document}

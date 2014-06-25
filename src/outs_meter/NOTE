@@ -1,0 +1,49 @@
+Canali simmetrici 
+       sm_fence, sm_no, sm_nullack, udn
+Canali asimmetrici 
+       sm, sm_all, udn
+
+Uso tipo di presa dati 2 per gli effettivi valori di misura.
+
+
+./compact *.dat
+
+Parto da un file [1] = TYPE_NSCAMB_NHOPS_*.dat formato da tre colonne e tante righe quanti sono le misurazioni effettuate (le colonne corrispondono a media della Lcom, devianza standard e massimo valore nelle NITER iterazioni). Con ./convert lo trasformo nel file [2] = TYPE_NSCAMB_NHOPS_*.dat.avg contenente tre righe relative alle tre colonne del file [1], ogni riga contiene media, sdev e max. A questo punto prendo tutti i file [2] con stesso (TYPE, NSCAMB) delle implementazioni del canale simmetrico, e creo un file che unisca le informazioni in modo da avere righe diverse per i differenti NHOPS, le colonne sono le medie di Lcom per le diverse implementazioni, [3] = TYPE_NSCAMB_sym_all.dat.avg, tale file \`e ottenuto dall'esecuzione di ./printAll con in ingresso il valore di TYPE e di NSCAMB:
+e.g.
+nhops		udn	sm_no	sm_fence	sm_nullack
+1		40	200	100		70
+8		50	210	110		80
+...
+A questo punto i dati sono pronti per essere inseriti in una tabella o per essere plottati in un grafico.
+Voglio un altro file [3b] come
+nhops		udn	und-sdev	udn-max	sm_no	sm_no-sdev	sm_no-max	...
+1		40	3		45	200	4		220		...
+8		50	1		55	210	8		215		...
+
+1) ./compact TYPE_NSCAMB_*_ch_sym_*.dat
+   * compatta i risulati di tutte le esecuzioni di tipo TYPE con NSCAMB
+   * crea i files [2] TYPE_NSCAMB_ch_sym*.dat.avg
+2) ./printAll TYPE NSCAMB
+   * stampa le medie di Lcom per ogni implementazione e per ogni numero di hops
+   * crea il file [3] TYPE_NSCAMB_sym_all.dat.avg
+   * crea il file [3b] TYPE_NSCAMB_sym_all_stat.dat.avg
+3) ./plot.sh TYPE NSCAMB
+   * produce un plot a barre per i valori di numero di hops con i
+     valori della media di Lcom per le varie implementazioni
+   * crea il file TYPE_NSCAMB_sym_all.tex
+   * crea il file TYPE_NSCAMB_sym_all.eps
+   * crea il file TYPE_NSCAMB_sym_all.pdf
+   * crea il file TYPE_NSCAMB_sym_all_main.tex   
+   * crea il file TYPE_NSCAMB_sym_all_main.pdf
+
+Il tutto \`e eseguito da printResult.sh sia per le i sym che asymin, vengono stampati anche i valori per la tabella latex. Per inserire i grafici in un documento latex occorre copiare i file TYPE_NSCAMB_sym_all.{tex, pdf} e inserire nel documento un \begin{figure}[!h]\resizebox{\columnwidth}{!}{\input{TYPE_NSCAMB_sym_all.tex}}.
+
+[1] TYPE_NSCAMB_{1,8,14}_ch_*.dat
+-- ./compact TYPE_NSCAMB_*_*.dat -->
+[2] TYPE_NSCAMB_{1,8,14}_ch_*.dat.avg
+-- ./printAll TYPE NSCAMB -->
+[3a] TYPE_NSCAMB_ch_sym_all.dat.avg , TYPE_NSCAMB_ch_asymin_all.dat.avg
+[3b] TYPE_NSCAMB_ch_sym_all_stat.dat.avg , TYPE_NSCAMB_ch_asymin_all_stat.dat.avg
+-- ./plot.sh TYPE NSCAMB -->
+[4a] TYPE_NSCAMB_sym_all.tex , TYPE_NSCAMB_asymin_all.tex
+[4b] TYPE_NSCAMB_sym_all.pdf , TYPE_NSCAMB_asymin_all.pdf

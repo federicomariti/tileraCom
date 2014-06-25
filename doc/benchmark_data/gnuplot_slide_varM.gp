@@ -1,0 +1,13 @@
+offset = 0
+
+red1 = "#ff9966"
+red2 = "#ff3300"
+red3 = "#993300"
+
+blue = "#3366cc"
+green = "#33cc33"
+
+set grid
+set linetype 1+offset lw 5 ps 2 lc rgb red1
+set linetype 2+offset lw 5 ps 2 lc rgb red2
+set linetype 3+offset lw 5 ps 2 lc rgb red3

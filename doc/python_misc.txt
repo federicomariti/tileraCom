@@ -1,0 +1,55 @@
+freq = 864583711.588707
+tau = {'sec': 1/freq, 'millis': (1/freq)*1e3, 'micros': (1/freq)*1e6, 'nanos':(1/freq)*1e9}
+mtau = tau['micros']
+M = data = datasize = [56, 168, 280]
+Ta = {56: [4000, 7000, 10000, 20000], 168: [20000, 35000, 50000, 80000, 150000], 280: [50000, 80000, 100000, 150000, 250000]}
+Tcalc = {56:74352, 168:733250, 280:2040470}
+Tcalc2 = {56:80306, 168:723248, 280:2023768}
+Tcalc3 = {56:82934.926829, 168:735319.292683, 280: 2040430.560976}
+
+deltacom = delta = {'udn': 180.95523, 'sm': 481.04016, 'sm_all': 724.91273}
+
+
+Ludn = [42.066550, 49.561120, 55.722760]
+Lnullack = [72.359500, 80.700840, 86.759230]
+Lrdyack = [111.482450, 137.378440, 155.377520]
+Lrdyackno = [257.800490, 275.320380, 329.332180]
+Lasym_sm = [125.039207, 149.041103, 170.037299]
+Lasym_sm_all = [230.570268, 408.779285, 414.374837]
+Lasym_udn = [56.025529, 63.525349, 69.527121]
+s = 0
+for i in [0,1,2]: s += Lrdyack[i] / Lnullack[i]
+s / 3
+
+
+
+def nopt(Tcalc, ta): return  math.ceil(1.0 * Tcalc / Ta)
+def nopt1(Tcalc, Ta, delta): return math.ceil(1.0 * Tcalc / (Ta - delta))
+def nopt1_float(Tcalc, Ta, delta): return 1.0 * Tcalc / (Ta - delta))
+
+def nopt1_float_T(Tcalc, Ta, delta): 
+    x = 1.0 * Tcalc / (Ta - delta)
+    y = Tcalc/math.ceil(x) + delta
+    return [x, y]
+
+def calc_n_opt(Tcalc, impl):
+    for j in M:
+        for (i, item) in enumerate(Ta[j]): 
+            tmp_nopt = nopt1(Tcalc[j], Ta[j][i], delta[impl])
+            tmp_nopt_float = nopt1_float(Tcalc[j], Ta[j][i], delta[impl])
+            tmp_t = (1.0 * Tcalc[j]) / tmp_nopt_float
+            print "M =", j, " \tTa =", item, "\tn_opt =", tmp_nopt, "=", tmp_nopt_float, "\tt = ", tmp_t, "\t", tmp_nopt_float," & ",tmp_t
+            print
+
+def calcTa(Tcalc, deltacom, n): 
+    x = (Tcalc + deltacom) / ( 1.0 * n)
+    return [x, x*mtau]
+
+def tab_TsubsysId():
+    for M in datasize:
+        x = [Tcalc3[M] / 59 + deltacom['udn'], Tcalc3[M] / 59 + deltacom['sm_all']]
+        print M, "&", round(x[0],3), "&", round(x[0]*mtau,3), "&", round(x[1], 3), "&", round(x[1]*mtau, 3),  "\\\\"
+
+
+Tcalc = Tcalc3[56]
+T = 5340.577600

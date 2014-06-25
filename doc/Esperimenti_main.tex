@@ -1,0 +1,17 @@
+\section{Esperimenti}
+\label{sct:esperimenti}
+Con lo scopo di stimare e confrontare le prestazioni delle due tipologie di implementazioni del supporto alle comunicazioni vengono proposti due diversi esperimenti. Il primo \`e volto a misurare la latenza di comunicazione dei canali, viene usato il classico metodo a scambio di messaggi, detto ``ping-pong''. Il secondo \`e la parallelizzazione di un modulo sequenziale su stream che prevede sia comunicazioni simmetriche, che almeno una comunicazione asimmetrica in ingresso; in questo caso il confronto delle due soluzioni si basa sul tempo di completamento dello stream e sulla scalabilit\`a del sistema parallelo all'aumentare del numero dei processi. \`E significativa la scelta del tipo di computazione e di calcolo, in quanto le differenze prestazionali dei supporti forniti emergono con calcoli di grana fine, molto comuni in computazioni su stream. Calcoli di grana elevata, invece, non sono influenzati dalle comunicazioni: se \`e possibile la sovrapposizione delle comunicazioni al calcolo, le comunicazioni non hanno alcun impatto, altrimenti sono trascurabili rispetto al tempo di calcolo.
+
+%% sono realizzati nell'ottica di far fronte a comunicazioni a grana fine. Brevi calcoli aritmetici su stream, ad esempio, risultano problematici nella scalabilit\`a se non si usano comunicazioni efficenti, in particolar modo se non \`e possibile la sovrapposizione delle comunicazioni al calcolo.
+
+\input{Meter_Introduzione}
+
+\input{Meter_Risultati}
+
+\null
+\vfill
+\newpage
+
+\input{Benchmark_Descrizione}
+
+%% \input{Benchmark_Risultati}

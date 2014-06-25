@@ -1,0 +1,5 @@
+#include <stdlib.h>
+
+int main() {
+  input_file = fopen("calculateTime.dat.avg", "w");
+  output_file = fopen("calculateTime.dat", "r")

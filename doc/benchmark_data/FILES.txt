@@ -1,0 +1,25 @@
+ls -l *.{gp,sh,c,h} relazione*.tex README FILES | Cut 9
+FILES
+README
+calc_statistics.c
+createPlotPage.sh
+create_all_plots.sh
+error_handler.h
+plot.sh
+plot_T-log.gp
+plot_T.gp
+plot_Tc-log.gp
+plot_multicastTime.gp
+plot_rowCalcTimeRatio.gp
+plot_scalability.gp
+relazione.tex
+relazione_220513-1642.tex
+relazione_analisi.tex
+relazione_calcRow.tex
+relazione_complTime.tex
+relazione_confrontoImpl.tex
+relazione_data.tex
+relazione_descrizione.tex
+relazione_multicastTime.tex
+relazione_serviceTime.tex
+script.sh

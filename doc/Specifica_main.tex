@@ -1,0 +1,15 @@
+\FloatBarrier
+\section{Specifica dei meccanismi di comunicazione}
+\label{sct:specifica_meccanismi}
+
+I meccanismi di message passing presi in considerazione sono canali unidirezio\-nali di forma simmetrica e asimmetrica in ingresso, entrambi con grado di asincronia unitario e tipo di dati trasmessi ``riferimento alla memoria condivisa''. \\
+Viene fornita una descrizione astratta di questi meccanismi e delle relative primitive. Nelle sezioni successive sono descritte le implementazioni che fanno uso di due diversi supporti architetturali: la memoria condivisa con l'uso della gerarchia cache, e la rete di interconnessione tra i PEs. 
+
+\input{Specifica_Firmware}
+\newpage
+\input{Specifica_Astratta}
+\newpage
+\input{Specifica_SM}
+\newpage
+\input{Specifica_UDN}
+
